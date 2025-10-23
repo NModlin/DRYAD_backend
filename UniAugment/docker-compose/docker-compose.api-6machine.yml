@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  uniaugment-api:
+    image: uniaugment:full
+    container_name: uniaugment-api
+    ports:
+      - "8000:8000"
+    environment:
+      - STACK_TYPE=full
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - WEAVIATE_URL=${WEAVIATE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - API_HOST=${API_HOST_1}
+    networks:
+      - uniaugment-local
+      - uniaugment-6machine
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    container_name: uniaugment-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - uniaugment-local
+      - uniaugment-6machine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: uniaugment-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - /opt/uniaugment/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - uniaugment-local
+      - uniaugment-6machine
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: uniaugment-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - uniaugment-local
+      - uniaugment-6machine
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+volumes:
+  redis-data:
+  prometheus-data:
+
+networks:
+  uniaugment-local:
+    driver: bridge
+  uniaugment-6machine:
+    driver: overlay
+    driver_opts:
+      com.docker.network.driver.overlay.vxlanid: "4096"

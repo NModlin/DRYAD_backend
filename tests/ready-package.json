@@ -1,0 +1,48 @@
+{
+  "deployment_id": "deploy_7e57e7174793411c",
+  "client_id": "testapp-dev",
+  "environment": "development",
+  "created_at": "2025-10-08T05:39:19.514484",
+  "expires_at": "2026-10-08T05:39:19.514503",
+  "credentials": {
+    "api_key": "gai_OaMekxIDR2Ci64Y-3bAuQzQra8CtJNgOcQ61lx_2IkY",
+    "api_key_id": "key_0744166420c143a9",
+    "webhook_secret": null,
+    "client_id": null,
+    "client_secret": null
+  },
+  "endpoints": {
+    "base_url": "http://localhost:8000",
+    "api_version": "v1",
+    "groves": "http://localhost:8000/api/v1/dryad/groves",
+    "branches": "http://localhost:8000/api/v1/dryad/branches",
+    "vessels": "http://localhost:8000/api/v1/dryad/vessels",
+    "oracle": "http://localhost:8000/api/v1/dryad/oracle",
+    "dialogues": "http://localhost:8000/api/v1/dryad/dialogues",
+    "search": null,
+    "export_import": null,
+    "agent_studio": null,
+    "admin_center": null,
+    "multi_agent": null,
+    "health": "http://localhost:8000/health",
+    "docs": "http://localhost:8000/docs",
+    "websocket": null
+  },
+  "database": null,
+  "validation": {
+    "valid": true,
+    "warnings": [],
+    "errors": [],
+    "recommendations": []
+  },
+  "integration_status": {
+    "status": "ready",
+    "health_check_url": "http://localhost:8000/health",
+    "api_docs_url": "http://localhost:8000/docs",
+    "websocket_url": null,
+    "estimated_setup_time": "5 minutes"
+  },
+  "quick_start_guide_url": "http://localhost:8000/docs/quick-start",
+  "code_examples_url": "http://localhost:8000/docs/examples",
+  "support_contact": "test@example.com"
+}

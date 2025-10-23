@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TESTCONTAINERS_ENABLED: ${{ vars.TESTCONTAINERS_ENABLED }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip and build tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install dependencies (Unified Installation)
+        run: |
+          # New unified installation approach
+          pip install -r requirements.txt
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ "${{ env.TESTCONTAINERS_ENABLED }}" = "1" ]; then pip install "testcontainers[weaviate]>=3.7,<4.0"; fi
+
+      - name: Prepare test database URL
+        run: |
+          echo "DATABASE_URL=sqlite:///$(pwd)/gremlins_ci.db" >> $GITHUB_ENV
+
+      - name: Apply migrations (alembic upgrade head)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: |
+          alembic upgrade head
+
+      - name: Test GPU Detection (CPU-only CI environment)
+        env:
+          FORCE_CPU: "true"
+        run: |
+          python -c "
+          from app.core.llm_config import detect_gpu_config
+          import json
+          result = detect_gpu_config()
+          print('GPU Detection Test Results:')
+          print(json.dumps(result, indent=2))
+          assert result['device'] == 'cpu', f'Expected CPU device, got {result[\"device\"]}'
+          assert result['n_gpu_layers'] == 0, f'Expected 0 GPU layers, got {result[\"n_gpu_layers\"]}'
+          print('✅ GPU detection working correctly in CPU-only environment')
+          "
+
+      - name: Test Multimodal Device Selection
+        env:
+          FORCE_CPU: "true"
+        run: |
+          python -c "
+          from app.core.multimodal import get_optimal_device
+          device = get_optimal_device()
+          print(f'Multimodal device: {device}')
+          assert device == 'cpu', f'Expected CPU device, got {device}'
+          print('✅ Multimodal device selection working correctly')
+          "
+
+      - name: Run tests with coverage
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TESTCONTAINERS_ENABLED: ${{ env.TESTCONTAINERS_ENABLED }}
+          FORCE_CPU: "true"  # Ensure CPU-only testing in CI
+        run: |
+          pytest -q --maxfail=1 --disable-warnings \
+            --cov=app --cov-report=term-missing --cov-fail-under=90
+
+
+  testcontainers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TESTCONTAINERS_ENABLED: '1'
+    services:
+      docker:
+        image: docker:24.0.7-dind
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip and install deps (Unified Installation)
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          # New unified installation approach
+          pip install -r requirements.txt
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          pip install "testcontainers[weaviate]>=3.7,<4.0"
+
+      - name: Prepare test database URL
+        run: |
+          echo "DATABASE_URL=sqlite:///$(pwd)/gremlins_ci_tc.db" >> $GITHUB_ENV
+
+      - name: Apply migrations (alembic upgrade head)
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+        run: |
+          alembic upgrade head
+
+      - name: Run Testcontainers integration tests
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          TESTCONTAINERS_ENABLED: '1'
+          USE_CLIP: 'false'
+        run: |
+          pytest -q tests/integration/test_vector_store_real_weaviate.py -q

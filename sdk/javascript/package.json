@@ -1,0 +1,149 @@
+{
+  "name": "@dryad-ai/sdk",
+  "version": "1.0.0-beta.1",
+  "description": "Official JavaScript/TypeScript SDK for the DRYAD.AI platform",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "type-check": "tsc --noEmit",
+    "docs": "typedoc src/index.ts",
+    "prepublishOnly": "npm run build && npm run test",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "ai",
+    "artificial-intelligence",
+    "llm",
+    "chatbot",
+    "api",
+    "sdk",
+    "multi-agent",
+    "rag",
+    "vector-search",
+    "multimodal",
+    "nlp",
+    "typescript",
+    "javascript"
+  ],
+  "author": "DRYAD.AI Team <support@DRYAD.AI.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/DRYAD_backend#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/DRYAD_backend.git",
+    "directory": "sdk/javascript"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/DRYAD_backend/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "ws": "^8.14.0",
+    "form-data": "^4.0.0",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.0",
+    "@types/jest": "^29.5.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "prettier": "^3.0.0",
+    "rimraf": "^5.0.0",
+    "rollup": "^4.0.0",
+    "@rollup/plugin-typescript": "^11.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "rollup-plugin-dts": "^6.1.0",
+    "ts-jest": "^29.1.0",
+    "typedoc": "^0.25.0",
+    "typescript": "^5.2.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.5.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/tests"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/index.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ]
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "extends": [
+      "eslint:recommended",
+      "@typescript-eslint/recommended",
+      "prettier"
+    ],
+    "plugins": [
+      "@typescript-eslint",
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error",
+      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/explicit-function-return-type": "warn"
+    },
+    "env": {
+      "node": true,
+      "es2022": true
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2
+  }
+}

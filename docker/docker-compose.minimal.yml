@@ -1,0 +1,72 @@
+# DRYAD.AI Backend - Minimal Docker Compose
+# For development and lightweight deployments
+
+version: '3.8'
+
+services:
+  # DRYAD.AI Backend Application (Minimal)
+  gremlins-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        INSTALL_TIER: minimal
+    container_name: gremlins-api-minimal
+    ports:
+      - "8000:8000"
+    environment:
+      # Database (SQLite only)
+      - DATABASE_URL=sqlite:///app/data/DRYAD.AI.db
+      
+      # LLM Configuration (Mock or Ollama)
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - OLLAMA_BASE_URL=http://ollama:11434
+      
+      # Security
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required - generate with: python -c 'import secrets; print(secrets.token_urlsafe(48))'}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      
+      # Application
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - gremlins-minimal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Ollama Local LLM Server (Optional)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: gremlins-ollama-minimal
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_minimal_data:/root/.ollama
+    networks:
+      - gremlins-minimal
+    restart: unless-stopped
+    profiles:
+      - local-llm
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  gremlins-minimal:
+    driver: bridge
+
+volumes:
+  ollama_minimal_data:
+    driver: local

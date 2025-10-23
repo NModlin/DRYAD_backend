@@ -1,0 +1,160 @@
+version: '3.8'
+
+# UniAugment - Windows Machine (Database Server)
+# Runs: PostgreSQL + Weaviate + Backup Services
+# This is the persistent data layer
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: uniaugment-postgres
+    hostname: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-uniaugment}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-uniaugment}
+      - POSTGRES_INITDB_ARGS=-c shared_buffers=256MB -c max_connections=200
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./docker/shared/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backups:/backups
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-uniaugment}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Weaviate Vector Database
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: uniaugment-weaviate
+    hostname: weaviate
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - DEFAULT_VECTORIZER_MODULE=none
+      - ENABLE_MODULES=text2vec-openai,text2vec-cohere,text2vec-huggingface,generative-openai
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # pgAdmin (PostgreSQL Management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: uniaugment-pgadmin
+    hostname: pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@uniaugment.local
+      - PGADMIN_DEFAULT_PASSWORD=${POSTGRES_PASSWORD}
+      - PGADMIN_CONFIG_PROXY_X_FOR_COUNT=1
+      - PGADMIN_CONFIG_PROXY_X_PROTO_COUNT=1
+      - PGADMIN_CONFIG_PROXY_X_HOST_COUNT=1
+      - PGADMIN_CONFIG_PROXY_X_PORT_COUNT=1
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - uniaugment-local
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Backup Service
+  backup-service:
+    image: uniaugment:full
+    container_name: uniaugment-backup
+    hostname: backup-service
+    command: python -m src.services.backup_service
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - BACKUP_SCHEDULE=0 2 * * *
+      - BACKUP_RETENTION_DAYS=30
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    volumes:
+      - ./backups:/backups
+      - postgres-data:/data/postgres:ro
+      - weaviate-data:/data/weaviate:ro
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    depends_on:
+      postgres:
+        condition: service_healthy
+      weaviate:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Adminer (Database UI)
+  adminer:
+    image: adminer:latest
+    container_name: uniaugment-adminer
+    hostname: adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - uniaugment-local
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres-data:
+    driver: local
+  weaviate-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+
+networks:
+  uniaugment-local:
+    driver: nat
+  uniaugment-distributed:
+    driver: overlay
+    driver_opts:
+      com.docker.network.driver.overlay.vxlanid: "4096"
+

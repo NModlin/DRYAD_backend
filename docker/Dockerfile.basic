@@ -1,0 +1,53 @@
+# GremlinsAI Backend - Basic Mode Dockerfile
+# Minimal deployment without external service dependencies
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements-minimal.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements-minimal.txt
+
+# Copy application code
+COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
+COPY .env.example .env
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/logs
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV BASIC_MODE=true
+ENV DATABASE_URL=sqlite:///./data/gremlins.db
+
+# Initialize database
+RUN python -c "
+import os
+os.environ['DATABASE_URL'] = 'sqlite:///./data/gremlins.db'
+from alembic.config import Config
+from alembic import command
+alembic_cfg = Config('alembic.ini')
+alembic_cfg.set_main_option('sqlalchemy.url', 'sqlite:///./data/gremlins.db')
+command.upgrade(alembic_cfg, 'head')
+"
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health/status || exit 1
+
+# Run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

@@ -1,0 +1,194 @@
+# DRYAD.AI Alerting Rules for Prometheus
+
+groups:
+  - name: dryad_backend_alerts
+    interval: 30s
+    rules:
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # API Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.instance }}"
+
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job="dryad-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "DRYAD backend is down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute"
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / process_virtual_memory_max_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # Database Connection Pool Exhaustion
+      - alert: DatabaseConnectionPoolExhausted
+        expr: db_connection_pool_active / db_connection_pool_max > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool nearly exhausted"
+          description: "Connection pool usage is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+  - name: dryad_llm_alerts
+    interval: 30s
+    rules:
+      # LLM Request Failures
+      - alert: HighLLMFailureRate
+        expr: rate(llm_requests_total{status="failed"}[5m]) / rate(llm_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: "High LLM request failure rate"
+          description: "LLM failure rate is {{ $value | humanizePercentage }} for {{ $labels.provider }}"
+
+      # LLM Response Time
+      - alert: SlowLLMResponses
+        expr: histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: "Slow LLM responses"
+          description: "95th percentile LLM response time is {{ $value }}s for {{ $labels.provider }}"
+
+      # LLM Rate Limit
+      - alert: LLMRateLimitApproaching
+        expr: llm_rate_limit_remaining / llm_rate_limit_total < 0.2
+        for: 5m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: "LLM rate limit approaching"
+          description: "Only {{ $value | humanizePercentage }} of rate limit remaining for {{ $labels.provider }}"
+
+  - name: dryad_agent_alerts
+    interval: 30s
+    rules:
+      # Agent Workflow Failures
+      - alert: HighAgentWorkflowFailureRate
+        expr: rate(agent_workflow_total{status="failed"}[5m]) / rate(agent_workflow_total[5m]) > 0.15
+        for: 5m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "High agent workflow failure rate"
+          description: "Agent workflow failure rate is {{ $value | humanizePercentage }}"
+
+      # Memory Guild Errors
+      - alert: MemoryGuildErrors
+        expr: rate(memory_guild_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: memory
+        annotations:
+          summary: "Memory Guild experiencing errors"
+          description: "Memory Guild error rate is {{ $value }} errors/sec"
+
+  - name: dryad_database_alerts
+    interval: 30s
+    rules:
+      # Database Down
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Database has been down for more than 1 minute"
+
+      # High Database CPU
+      - alert: HighDatabaseCPU
+        expr: rate(pg_stat_database_blks_read[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database CPU usage"
+          description: "Database is reading {{ $value }} blocks/sec"
+
+      # Slow Queries
+      - alert: SlowDatabaseQueries
+        expr: pg_stat_activity_max_tx_duration > 60
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Longest running query is {{ $value }}s"
+
+  - name: dryad_system_alerts
+    interval: 30s
+    rules:
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # High Disk Usage
+      - alert: HighDiskUsage
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "High disk usage"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining on {{ $labels.instance }}"
+
+      # Container Restart
+      - alert: ContainerRestarting
+        expr: rate(container_last_seen[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+        annotations:
+          summary: "Container is restarting"
+          description: "Container {{ $labels.name }} is restarting frequently"
+

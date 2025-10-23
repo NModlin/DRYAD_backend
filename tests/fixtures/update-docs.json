@@ -1,0 +1,17 @@
+{
+  "agent_id": "550e8400-e29b-41d4-a716-446655440000",
+  "doc_id": "doc-uuid-here",
+  "updates": {
+    "version": "1.1.0",
+    "capabilities": [
+      "User account creation and management",
+      "Group membership management",
+      "Password reset and unlock",
+      "Account status management (enable/disable)",
+      "Bulk operations support",
+      "Organizational Unit (OU) management"
+    ],
+    "changelog": "Added support for OU management in version 1.1.0"
+  }
+}
+

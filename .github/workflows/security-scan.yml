@@ -1,0 +1,251 @@
+# ============================================================================
+# DRYAD.AI Backend - Security Scanning Pipeline
+# Runs security scans on code and Docker images
+# ============================================================================
+
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  # ==========================================================================
+  # Job 1: Dependency Scanning
+  # ==========================================================================
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety pip-audit
+
+      - name: Run Safety check
+        run: |
+          safety check --json --output safety-report.json || true
+          safety check || true
+
+      - name: Run pip-audit
+        run: |
+          pip-audit --desc --output pip-audit-report.json || true
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-scan-reports
+          path: |
+            safety-report.json
+            pip-audit-report.json
+
+  # ==========================================================================
+  # Job 2: Code Security Scanning (Bandit)
+  # ==========================================================================
+  code-security-scan:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit
+        run: |
+          bandit -r app/ -f json -o bandit-report.json || true
+          bandit -r app/ -ll
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  # ==========================================================================
+  # Job 3: Secret Scanning
+  # ==========================================================================
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ==========================================================================
+  # Job 4: Docker Image Scanning (Trivy)
+  # ==========================================================================
+  docker-scan:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker images
+        run: |
+          docker build -f Dockerfile.prod -t DRYAD.AI-backend:test .
+          docker build -f Dockerfile.worker -t DRYAD.AI-worker:test .
+          docker build -f Dockerfile.nginx -t DRYAD.AI-nginx:test .
+
+      - name: Run Trivy scan on backend
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'DRYAD.AI-backend:test'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy scan on worker
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'DRYAD.AI-worker:test'
+          format: 'sarif'
+          output: 'trivy-worker-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy scan on nginx
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'DRYAD.AI-nginx:test'
+          format: 'sarif'
+          output: 'trivy-nginx-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+
+  # ==========================================================================
+  # Job 5: SAST (Static Application Security Testing)
+  # ==========================================================================
+  sast-scan:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+  # ==========================================================================
+  # Job 6: License Compliance
+  # ==========================================================================
+  license-scan:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pip-licenses
+
+      - name: Check licenses
+        run: |
+          pip install -r requirements.txt
+          pip-licenses --format=json --output-file=licenses.json
+          pip-licenses --format=markdown --output-file=licenses.md
+
+      - name: Upload license reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-reports
+          path: |
+            licenses.json
+            licenses.md
+
+  # ==========================================================================
+  # Job 7: Security Report Summary
+  # ==========================================================================
+  security-report:
+    name: Security Scan Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, code-security-scan, secret-scan, docker-scan, sast-scan, license-scan]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate security summary
+        run: |
+          echo "# Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "## Scan Results" >> security-summary.md
+          echo "- Dependency Scan: ${{ needs.dependency-scan.result }}" >> security-summary.md
+          echo "- Code Security: ${{ needs.code-security-scan.result }}" >> security-summary.md
+          echo "- Secret Detection: ${{ needs.secret-scan.result }}" >> security-summary.md
+          echo "- Docker Scan: ${{ needs.docker-scan.result }}" >> security-summary.md
+          echo "- SAST: ${{ needs.sast-scan.result }}" >> security-summary.md
+          echo "- License Check: ${{ needs.license-scan.result }}" >> security-summary.md
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-summary
+          path: security-summary.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('security-summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+

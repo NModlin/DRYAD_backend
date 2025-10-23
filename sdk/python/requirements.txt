@@ -1,0 +1,25 @@
+# DRYAD.AI Python SDK Requirements
+# Core dependencies for the official Python client
+
+# HTTP client with async support
+httpx>=0.25.0,<1.0.0
+
+# WebSocket support
+websockets>=11.0.0,<13.0.0
+
+# Type hints and validation
+pydantic>=2.0.0,<3.0.0
+typing-extensions>=4.5.0
+
+# Async utilities
+aiofiles>=23.0.0,<25.0.0
+
+# Optional dependencies for enhanced features
+# JSON handling
+orjson>=3.8.0,<4.0.0; python_version >= "3.8"
+
+# Rich console output (for CLI)
+rich>=13.0.0,<14.0.0
+
+# Configuration management
+python-dotenv>=1.0.0,<2.0.0

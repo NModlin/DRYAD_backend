@@ -1,0 +1,134 @@
+# ============================================================================
+# Docker Ignore File - Exclude unnecessary files from Docker builds
+# ============================================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.venv/
+.venv_*/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+archive/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+pytest.ini
+.pytest_cache/
+
+# Logs
+logs/
+*.log
+
+# Data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Models (download at runtime - mounted as volume)
+models/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Node modules (if any)
+node_modules/
+package-lock.json
+
+# Docker files (don't copy into image)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Coverage reports
+coverage.xml
+.coverage
+
+# Frontend
+frontend/
+frontend-auth-tester/
+
+# Scripts (some may not be needed in production)
+scripts/test_*.py
+scripts/setup_*.py
+scripts/validate_*.py
+
+# Kubernetes
+k8s/
+kubernetes/
+
+# Monitoring (configured separately)
+monitoring/
+
+# Examples
+examples/
+
+# SDK
+sdk/
+
+# Dryad subdirectory (separate project)
+Dryad/
+
+# Large directories
+htmlcov/
+.venv/
+__pycache__/
+
+# Additional exclusions
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+

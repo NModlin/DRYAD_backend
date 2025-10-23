@@ -1,0 +1,430 @@
+{
+  "info": {
+    "name": "DRYAD.AI - Agentic University System",
+    "description": "Complete API collection for the Agentic Research University System (Level 6)\n\nIncludes:\n- University Management (11 endpoints)\n- Curriculum System (12 endpoints)\n- Competition System (11 endpoints)\n- Agent Creation Studio Phase 1 (7 endpoints)\n- Agent Creation Studio Phase 2 (27 endpoints)\n- Leaderboards (7 endpoints)\n\nTotal: 75 endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "university_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "curriculum_path_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "curriculum_level_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "competition_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "agent_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "leaderboard_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "University Management",
+      "item": [
+        {
+          "name": "Create University",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('university_id', response.id);",
+                  "    pm.test('University created successfully', () => {",
+                  "        pm.expect(response.id).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DRYAD Academy\",\n  \"description\": \"Premier AI agent training university\",\n  \"owner_user_id\": \"user_123\",\n  \"isolation_level\": \"strict\",\n  \"max_agents\": 1000,\n  \"max_competitions\": 100,\n  \"storage_limit_gb\": 100\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", ""]
+            }
+          }
+        },
+        {
+          "name": "List Universities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", ""],
+              "query": [
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get University Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", "{{university_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update University",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"DRYAD Academy - Updated\",\n  \"max_agents\": 2000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", "{{university_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete University",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/{{university_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", "{{university_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get University Statistics",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/{{university_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", "{{university_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Search Universities",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/universities/search/?query=DRYAD&skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "universities", "search", ""],
+              "query": [
+                {"key": "query", "value": "DRYAD"},
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Curriculum System",
+      "item": [
+        {
+          "name": "Create Curriculum Path",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('curriculum_path_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"university_id\": \"{{university_id}}\",\n  \"name\": \"Memetics Fundamentals\",\n  \"description\": \"Introduction to memetic engineering\",\n  \"specialization\": \"memetics\",\n  \"difficulty_level\": \"beginner\",\n  \"estimated_duration_hours\": 40\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/paths",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "paths"]
+            }
+          }
+        },
+        {
+          "name": "List Curriculum Paths",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/paths?university_id={{university_id}}&skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "paths"],
+              "query": [
+                {"key": "university_id", "value": "{{university_id}}"},
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Curriculum Path Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/paths/{{curriculum_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "paths", "{{curriculum_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Curriculum Path",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Memetics Fundamentals - Updated\",\n  \"estimated_duration_hours\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/paths/{{curriculum_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "paths", "{{curriculum_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Curriculum Path",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/paths/{{curriculum_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "paths", "{{curriculum_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Curriculum Level",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('curriculum_level_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"curriculum_path_id\": \"{{curriculum_path_id}}\",\n  \"level_number\": 1,\n  \"name\": \"Introduction to Memes\",\n  \"description\": \"Basic concepts of memetic theory\",\n  \"difficulty\": \"beginner\",\n  \"required_score\": 80,\n  \"time_limit_minutes\": 60\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/levels",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "levels"]
+            }
+          }
+        },
+        {
+          "name": "Get Agent Progress",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/curriculum/progress/{{agent_id}}?path_id={{curriculum_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "curriculum", "progress", "{{agent_id}}"],
+              "query": [
+                {"key": "path_id", "value": "{{curriculum_path_id}}"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Competition System",
+      "item": [
+        {
+          "name": "Create Competition",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('competition_id', response.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"university_id\": \"{{university_id}}\",\n  \"name\": \"Autumn Tournament 2025\",\n  \"description\": \"Quarterly agent competition\",\n  \"competition_type\": \"tournament\",\n  \"challenge_category\": \"problem_solving\",\n  \"max_participants\": 64\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", ""]
+            }
+          }
+        },
+        {
+          "name": "List Competitions",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/?university_id={{university_id}}&skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", ""],
+              "query": [
+                {"key": "university_id", "value": "{{university_id}}"},
+                {"key": "skip", "value": "0"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Competition Details",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/{{competition_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", "{{competition_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Start Competition",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/{{competition_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", "{{competition_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "End Competition",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"winner_id\": \"{{agent_id}}\",\n  \"final_scores\": {\n    \"agent_1\": 95.5,\n    \"agent_2\": 87.3\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/{{competition_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", "{{competition_id}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/competitions/{{competition_id}}/leaderboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "competitions", "{{competition_id}}", "leaderboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,85 @@
+# ============================================================================
+# DRYAD.AI Production Dockerfile
+# Multi-stage build for optimized production deployment
+# ============================================================================
+
+# ============================================================================
+# Stage 1: Builder - Install dependencies and build artifacts
+# ============================================================================
+FROM python:3.11-slim AS builder
+
+# Set build arguments
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements
+WORKDIR /build
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ============================================================================
+# Stage 2: Runtime - Minimal production image
+# ============================================================================
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    DRYAD_ENV=production
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r dryad --gid=1000 && \
+    useradd -r -g dryad --uid=1000 --home-dir=/app --shell=/bin/bash dryad && \
+    mkdir -p /app /app/logs /app/data && \
+    chown -R dryad:dryad /app
+
+# Copy virtual environment from builder
+COPY --from=builder --chown=dryad:dryad /opt/venv /opt/venv
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown=dryad:dryad . .
+
+# Create necessary directories
+RUN mkdir -p \
+    /app/logs \
+    /app/data \
+    /app/uploads \
+    /app/cache \
+    && chown -R dryad:dryad /app
+
+# Switch to non-root user
+USER dryad
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+

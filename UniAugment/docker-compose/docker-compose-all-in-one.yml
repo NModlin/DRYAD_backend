@@ -1,0 +1,172 @@
+version: '3.8'
+
+services:
+  # All services on a single machine for 1-machine deployment
+  uniaugment-api:
+    image: uniaugment:full
+    container_name: uniaugment-api
+    ports:
+      - "8000:8000"
+    environment:
+      - STACK_TYPE=all-in-one
+      - DATABASE_URL=postgresql://uniaugment:${POSTGRES_PASSWORD}@postgres:5432/uniaugment
+      - REDIS_URL=redis://redis:6379/0
+      - WEAVIATE_URL=http://weaviate:8080
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - LOG_LEVEL=INFO
+    depends_on:
+      - postgres
+      - redis
+      - weaviate
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: uniaugment-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=uniaugment
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=uniaugment
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: uniaugment-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: uniaugment-weaviate
+    ports:
+      - "8080:8080"
+    environment:
+      - QUERY_DEFAULTS_LIMIT=25
+      - AUTHENTICATION_APIKEY_ENABLED=true
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  celery-worker:
+    image: uniaugment:full
+    container_name: uniaugment-celery-worker
+    command: celery -A src.core.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - DATABASE_URL=postgresql://uniaugment:${POSTGRES_PASSWORD}@postgres:5432/uniaugment
+    depends_on:
+      - redis
+      - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower:latest
+    container_name: uniaugment-flower
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: uniaugment-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: uniaugment-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+    networks:
+      - uniaugment-all-in-one
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  weaviate-data:
+  grafana-data:
+  prometheus-data:
+
+networks:
+  uniaugment-all-in-one:
+    driver: bridge

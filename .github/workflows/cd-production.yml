@@ -1,0 +1,244 @@
+# ============================================================================
+# DRYAD.AI Backend - Continuous Deployment to Production
+# Deploys to production on manual trigger or tag push
+# ============================================================================
+
+name: CD - Production Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  PYTHON_VERSION: '3.11'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ==========================================================================
+  # Job 1: Build and Push Docker Images
+  # ==========================================================================
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Convert repository name to lowercase
+        id: repo
+        run: echo "repository=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}-backend:${{ steps.meta.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.worker
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}-worker:${{ steps.meta.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push nginx image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.nginx
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.repository }}-nginx:${{ steps.meta.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==========================================================================
+  # Job 2: Deploy to Staging (for testing)
+  # ==========================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event.inputs.environment == 'staging' || github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.DRYAD.AI.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging server
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your staging deployment commands here
+          # Example: SSH to server and run docker-compose
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests..."
+          curl -f https://staging.DRYAD.AI.com/health || exit 1
+
+  # ==========================================================================
+  # Job 3: Deploy to Production (requires approval)
+  # ==========================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event.inputs.environment == 'production' || startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://DRYAD.AI.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production server
+        run: |
+          echo "Deploying to production environment..."
+          # Add your production deployment commands here
+          # Example: SSH to server and run docker-compose
+
+      - name: Run health checks
+        run: |
+          echo "Running health checks..."
+          curl -f https://DRYAD.AI.com/health || exit 1
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "Production deployment successful!"
+          # Add notification logic (Slack, Teams, etc.)
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "Deployment failed! Rolling back..."
+          # Add rollback logic
+
+  # ==========================================================================
+  # Job 4: Post-Deployment Tests
+  # ==========================================================================
+  post-deployment-tests:
+    name: Post-Deployment Tests
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install test dependencies
+        run: |
+          pip install requests pytest
+
+      - name: Run API tests
+        run: |
+          pytest tests/test_api.py --base-url=https://DRYAD.AI.com -v
+
+      - name: Run security tests
+        run: |
+          pytest tests/security/ --base-url=https://DRYAD.AI.com -v
+
+      - name: Performance tests
+        run: |
+          echo "Running performance tests..."
+          # Add performance testing logic
+
+  # ==========================================================================
+  # Job 5: Create Release Notes
+  # ==========================================================================
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deployment-tests]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "Generating changelog..."
+          # Add changelog generation logic
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## What's Changed
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ## Docker Images
+            - Backend: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ needs.build-and-push.outputs.version }}`
+            - Worker: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker:${{ needs.build-and-push.outputs.version }}`
+            - Nginx: `${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx:${{ needs.build-and-push.outputs.version }}`
+          draft: false
+          prerelease: false
+

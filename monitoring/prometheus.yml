@@ -1,0 +1,114 @@
+# Prometheus Configuration for DRYAD.AI
+# Scrapes metrics from DRYAD backend and system components
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'dryad-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # DRYAD Backend API
+  - job_name: 'dryad-backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['dryad-backend:8000']
+        labels:
+          service: 'api'
+          component: 'backend'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # DRYAD Health Endpoint
+  - job_name: 'dryad-health'
+    metrics_path: '/health'
+    static_configs:
+      - targets: ['dryad-backend:8000']
+        labels:
+          service: 'health'
+          component: 'backend'
+    scrape_interval: 30s
+
+  # PostgreSQL Database Metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'database'
+          component: 'postgres'
+
+  # Redis Metrics (if Redis is used)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'cache'
+          component: 'redis'
+
+  # ChromaDB Metrics (if exposed)
+  - job_name: 'chromadb'
+    static_configs:
+      - targets: ['chromadb:8001']
+        labels:
+          service: 'vector-db'
+          component: 'chromadb'
+
+  # Nginx Metrics
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          service: 'proxy'
+          component: 'nginx'
+
+  # Node Exporter (System Metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'system'
+          component: 'node'
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'monitoring'
+          component: 'prometheus'
+
+  # cAdvisor (Container Metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          service: 'containers'
+          component: 'cadvisor'
+
+# Remote write configuration (optional - for long-term storage)
+# remote_write:
+#   - url: "https://prometheus-remote-storage.example.com/api/v1/write"
+#     basic_auth:
+#       username: "dryad"
+#       password: "${REMOTE_WRITE_PASSWORD}"
+
+# Remote read configuration (optional)
+# remote_read:
+#   - url: "https://prometheus-remote-storage.example.com/api/v1/read"
+#     basic_auth:
+#       username: "dryad"
+#       password: "${REMOTE_READ_PASSWORD}"
+

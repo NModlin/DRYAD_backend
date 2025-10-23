@@ -1,0 +1,154 @@
+version: '3.8'
+
+# UniAugment - Arch Linux Machine 1 (API Server)
+# Runs: FastAPI + Redis + Prometheus
+# This is the primary API server and cache layer
+
+services:
+  # FastAPI Application
+  uniaugment-api:
+    image: uniaugment:full
+    container_name: uniaugment-api
+    hostname: uniaugment-api
+    ports:
+      - "8000:8000"
+    environment:
+      - STACK_TYPE=full
+      - MACHINE_ROLE=api-server
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - WEAVIATE_URL=${WEAVIATE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # Agent Creation Studio - Phase 1
+      - AGENT_CREATION_STUDIO_ENABLED=${AGENT_CREATION_STUDIO_ENABLED:-false}
+      - AGENT_VISUAL_CUSTOMIZATION=${AGENT_VISUAL_CUSTOMIZATION:-true}
+      - AGENT_BEHAVIORAL_CUSTOMIZATION=${AGENT_BEHAVIORAL_CUSTOMIZATION:-true}
+      - DEFAULT_AVATAR_STYLE=${DEFAULT_AVATAR_STYLE:-abstract}
+      - DEFAULT_PRIMARY_COLOR=${DEFAULT_PRIMARY_COLOR:-#0066CC}
+      - DEFAULT_SECONDARY_COLOR=${DEFAULT_SECONDARY_COLOR:-#00CC66}
+      - DEFAULT_ACCENT_COLOR=${DEFAULT_ACCENT_COLOR:-#CC6600}
+      - DEFAULT_VISUAL_THEME=${DEFAULT_VISUAL_THEME:-professional}
+      - DEFAULT_GLOW_INTENSITY=${DEFAULT_GLOW_INTENSITY:-0.5}
+      - DEFAULT_LEARNING_STYLE=${DEFAULT_LEARNING_STYLE:-visual}
+      - DEFAULT_LEARNING_PACE=${DEFAULT_LEARNING_PACE:-1.0}
+      - DEFAULT_RISK_TOLERANCE=${DEFAULT_RISK_TOLERANCE:-0.5}
+      - DEFAULT_COLLABORATION_STYLE=${DEFAULT_COLLABORATION_STYLE:-equal}
+      - DEFAULT_COMMUNICATION_TONE=${DEFAULT_COMMUNICATION_TONE:-professional}
+      - DEFAULT_DECISION_SPEED=${DEFAULT_DECISION_SPEED:-0.5}
+      - DEFAULT_DECISION_CONFIDENCE=${DEFAULT_DECISION_CONFIDENCE:-0.7}
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Cache & Celery Broker
+  redis:
+    image: redis:7-alpine
+    container_name: uniaugment-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: uniaugment-prometheus
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    networks:
+      - uniaugment-local
+      - uniaugment-distributed
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: uniaugment-node-exporter
+    hostname: node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - uniaugment-local
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+
+networks:
+  uniaugment-local:
+    driver: bridge
+  uniaugment-distributed:
+    driver: overlay
+    driver_opts:
+      com.docker.network.driver.overlay.vxlanid: "4096"
+

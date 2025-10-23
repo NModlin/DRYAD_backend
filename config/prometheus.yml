@@ -1,0 +1,46 @@
+# Prometheus Configuration for DRYAD.AI
+# Scrapes metrics from the API server
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'dryad-monitor'
+    environment: 'production'
+
+# Scrape configurations
+scrape_configs:
+  # DRYAD.AI API Server
+  - job_name: 'dryad-api'
+    metrics_path: '/metrics/prometheus'
+    static_configs:
+      - targets: ['dryad-api:8000']
+        labels:
+          service: 'api'
+          component: 'main'
+  
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+  
+  # Redis metrics (if redis_exporter is added)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+  #         component: 'archivist'
+
+# Alerting rules (optional)
+# rule_files:
+#   - 'alerts.yml'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
