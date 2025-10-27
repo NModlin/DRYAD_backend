@@ -46,8 +46,8 @@ async def get_health_status():
 
         if not llm_info.get("available", False):
             setup_guidance.extend([
-                "🚨 No real LLM configured - currently using mock responses",
-                "💡 Quick setup options:",
+                "No real LLM configured - currently using mock responses",
+                "Quick setup options:",
                 "   1. Ollama: Run 'python scripts/setup_local_llm.py'",
                 "   2. OpenAI: Set OPENAI_API_KEY environment variable",
                 "   3. HuggingFace: Set USE_HUGGINGFACE=true and install dependencies"
@@ -55,7 +55,7 @@ async def get_health_status():
 
         if health_status["status"] == "unhealthy":
             setup_guidance.extend([
-                "🔧 Troubleshooting steps:",
+                "Troubleshooting steps:",
                 "   - Check if Ollama service is running: ollama serve",
                 "   - Verify model is installed: ollama list",
                 "   - Check environment variables in .env file"

@@ -195,7 +195,7 @@ class TaskForceMessage(Base):
     message_type = Column(String(50), nullable=False)  # response, question, proposal, agreement
 
     # Metadata
-    metadata = Column(JSONB, nullable=True)
+    message_metadata = Column(JSONB, nullable=True)
 
     # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)

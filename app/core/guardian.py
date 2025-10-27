@@ -121,7 +121,7 @@ class Guardian:
     
     async def start(self):
         """Start the Guardian monitoring service."""
-        logger.info("🛡️ Guardian Agent starting...")
+        logger.info("Guardian Agent starting...")
         
         # Ensure log file exists
         if not self.log_path.exists():
@@ -133,7 +133,7 @@ class Guardian:
         self.last_position = self.log_path.stat().st_size
         
         self.running = True
-        logger.info(f"🛡️ Guardian monitoring: {self.log_path}")
+        logger.info(f"Guardian monitoring: {self.log_path}")
         
         try:
             await self._monitor_loop()
@@ -252,7 +252,7 @@ class Guardian:
         self.error_timestamps[error.hash] = error.timestamp
         
         logger.warning(
-            f"🛡️ Guardian detected error: {error.error_type} in {error.file_path}:{error.line_number}"
+            f"Guardian detected error: {error.error_type} in {error.file_path}:{error.line_number}"
         )
         
         # Submit to orchestrator

@@ -154,10 +154,14 @@ async def health_check():
     return await codebase_analyst.health_check()
 
 
+class SemanticSearchRequest(BaseModel):
+    """Request model for semantic search."""
+    query: str = Field(..., description="Search query")
+    limit: int = Field(10, ge=1, le=50, description="Number of results")
+
 @router.post("/semantic-search")
 async def semantic_search(
-    query: str = Field(..., description="Search query"),
-    limit: int = Field(10, ge=1, le=50, description="Number of results"),
+    request: SemanticSearchRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -176,13 +180,13 @@ async def semantic_search(
     try:
         results = await codebase_analyst._semantic_search(
             db=db,
-            query=query,
-            limit=limit
+            query=request.query,
+            limit=request.limit
         )
         
         return {
             "success": True,
-            "query": query,
+            "query": request.query,
             "results_count": len(results),
             "results": results
         }

@@ -61,7 +61,7 @@ class TeamsNotifier:
                 )
                 
                 if response.status_code == 200:
-                    logger.info(f"✅ Teams notification sent for task {task['id']}")
+                    logger.info(f"Teams notification sent for task {task['id']}")
                     return True
                 else:
                     logger.error(f"Failed to send Teams notification: {response.status_code} - {response.text}")
@@ -84,12 +84,12 @@ class TeamsNotifier:
         
         # Format severity with emoji
         severity_emoji = {
-            "critical": "🔴",
-            "high": "🟠",
-            "medium": "🟡",
-            "low": "🟢"
+            "critical": "[CRITICAL]",
+            "high": "[HIGH]",
+            "medium": "[MEDIUM]",
+            "low": "[LOW]"
         }
-        severity_display = f"{severity_emoji.get(severity, '⚪')} {severity.upper()}"
+        severity_display = f"{severity_emoji.get(severity, '[UNKNOWN]')} {severity.upper()}"
         
         # Build plan summary
         plan_summary = self._format_plan_summary(plan)
@@ -107,7 +107,7 @@ class TeamsNotifier:
                         "body": [
                             {
                                 "type": "TextBlock",
-                                "text": "🔧 Self-Healing Fix Pending Review",
+                                "text": "Self-Healing Fix Pending Review",
                                 "weight": "bolder",
                                 "size": "large",
                                 "color": "attention"
@@ -167,21 +167,21 @@ class TeamsNotifier:
                         "actions": [
                             {
                                 "type": "Action.Http",
-                                "title": "✅ Approve Fix",
+                                "title": "Approve Fix",
                                 "method": "POST",
                                 "url": f"{self.callback_url}/api/v1/orchestrator/self-healing/review/{task_id}",
                                 "body": '{"decision": "approved", "reviewer": "{{{{user.email}}}}"}'
                             },
                             {
                                 "type": "Action.Http",
-                                "title": "❌ Reject Fix",
+                                "title": "Reject Fix",
                                 "method": "POST",
                                 "url": f"{self.callback_url}/api/v1/orchestrator/self-healing/review/{task_id}",
                                 "body": '{"decision": "rejected", "reviewer": "{{{{user.email}}}}"}'
                             },
                             {
                                 "type": "Action.OpenUrl",
-                                "title": "📋 View & Review",
+                                "title": "View & Review",
                                 "url": f"{self.callback_url}/api/v1/self-healing-ui/tasks/{task_id}"
                             }
                         ]
@@ -266,11 +266,11 @@ class TeamsNotifier:
         file_path = task["file_path"]
         
         if success:
-            title = "✅ Self-Healing Fix Applied Successfully"
+            title = "Self-Healing Fix Applied Successfully"
             color = "good"
             message = f"The fix for {error_type} in {file_path} has been applied and validated."
         else:
-            title = "❌ Self-Healing Fix Failed"
+            title = "Self-Healing Fix Failed"
             color = "attention"
             message = f"The fix for {error_type} in {file_path} failed validation and was rolled back."
         
@@ -307,7 +307,7 @@ class TeamsNotifier:
                         "actions": [
                             {
                                 "type": "Action.OpenUrl",
-                                "title": "📋 View Details",
+                                "title": "View Details",
                                 "url": f"{self.callback_url}/api/v1/self-healing-ui/tasks/{task_id}"
                             }
                         ]

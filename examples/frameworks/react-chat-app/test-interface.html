@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dryad Console Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .status.connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.pending {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .agent-list {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .agent-item {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .agent-item:hover {
+            background-color: #e9ecef;
+        }
+        .chat-area {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 200px;
+            margin: 20px 0;
+            background-color: white;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .message.user {
+            background-color: #007bff;
+            color: white;
+            margin-left: 20%;
+        }
+        .message.agent {
+            background-color: #e9ecef;
+            color: #333;
+            margin-right: 20%;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dryad Console Test</h1>
+        
+        <div id="status" class="status pending">
+            Testing connection to Dryad backend...
+        </div>
+        
+        <div class="agent-list">
+            <h3>Available Agents (20+ Specialized Agents)</h3>
+            <div class="agent-item" onclick="selectAgent('Code Review Assistant')">Code Review Assistant</div>
+            <div class="agent-item" onclick="selectAgent('Document Analyst')">Document Analyst</div>
+            <div class="agent-item" onclick="selectAgent('Curriculum Engine')">Curriculum Engine</div>
+            <div class="agent-item" onclick="selectAgent('Competition Engine')">Competition Engine</div>
+            <div class="agent-item" onclick="selectAgent('Multi-Agent Orchestrator')">Multi-Agent Orchestrator</div>
+        </div>
+        
+        <div class="chat-area" id="chatArea">
+            <div class="message system">
+                Welcome to Dryad Console! Select an agent above to start chatting.
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type your message here..." disabled>
+            <button id="sendButton" onclick="sendMessage()" disabled>Send</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedAgent = null;
+        let conversationId = null;
+        
+        // Test backend connection
+        async function testConnection() {
+            const status = document.getElementById('status');
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/health');
+                if (response.ok) {
+                    status.className = 'status connected';
+                    status.innerHTML = '✅ Connected to Dryad backend!';
+                    document.getElementById('messageInput').disabled = false;
+                    document.getElementById('sendButton').disabled = false;
+                } else {
+                    throw new Error('Backend not responding properly');
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.innerHTML = '❌ Cannot connect to Dryad backend. Make sure the backend is running on http://localhost:8000';
+            }
+        }
+        
+        function selectAgent(agentName) {
+            selectedAgent = agentName;
+            const chatArea = document.getElementById('chatArea');
+            chatArea.innerHTML = `<div class="message system">Selected agent: <strong>${agentName}</strong>. You can now start chatting!</div>`;
+            
+            // Reset conversation for new agent
+            conversationId = null;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || !selectedAgent) return;
+            
+            // Add user message to chat
+            const chatArea = document.getElementById('chatArea');
+            chatArea.innerHTML += `<div class="message user">${message}</div>`;
+            input.value = '';
+            
+            // Show typing indicator
+            chatArea.innerHTML += `<div class="message agent">${selectedAgent} is thinking...</div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
+            
+            try {
+                // Create conversation if needed
+                if (!conversationId) {
+                    const convResponse = await fetch('http://localhost:8000/api/v1/conversations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ agent_id: selectedAgent.toLowerCase().replace(/\s+/g, '-') })
+                    });
+                    const convData = await convResponse.json();
+                    conversationId = convData.id;
+                }
+                
+                // Send message to agent
+                const response = await fetch(`http://localhost:8000/api/v1/conversations/${conversationId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: message,
+                        agent_id: selectedAgent.toLowerCase().replace(/\s+/g, '-')
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove typing indicator and add agent response
+                chatArea.innerHTML = chatArea.innerHTML.replace('is thinking...', '');
+                chatArea.innerHTML += `<div class="message agent"><strong>${selectedAgent}:</strong> ${data.response || 'No response received'}</div>`;
+                
+            } catch (error) {
+                chatArea.innerHTML = chatArea.innerHTML.replace('is thinking...', '');
+                chatArea.innerHTML += `<div class="message agent error"><strong>Error:</strong> ${error.message}</div>`;
+            }
+            
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+        
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Test connection on page load
+        testConnection();
+    </script>
+</body>
+</html>

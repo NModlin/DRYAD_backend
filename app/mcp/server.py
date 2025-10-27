@@ -67,7 +67,7 @@ class MCPCapabilities(BaseModel):
     prompts: Optional[Dict[str, Any]] = None
     logging: Optional[Dict[str, Any]] = None
 
-class DRYAD.AIMCPServer:
+class DRYADAIMCPServer:
     """DRYAD.AI Model Context Protocol Server."""
     
     def __init__(self):
@@ -853,4 +853,4 @@ Analysis:"""
 
 
 # Global MCP server instance
-mcp_server = DRYAD.AIMCPServer()
+mcp_server = DRYADAIMCPServer()

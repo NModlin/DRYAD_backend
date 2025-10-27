@@ -16,14 +16,14 @@ from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.exceptions import (
-    ErrorCode, ErrorSeverity, ErrorResponse, DRYAD.AIException,
+    ErrorCode, ErrorSeverity, ErrorResponse, DRYADAIException,
     ValidationException, DatabaseException, ValidationErrorDetail
 )
 
 logger = logging.getLogger(__name__)
 
 
-async def gremlins_exception_handler(request: Request, exc: DRYAD.AIException) -> JSONResponse:
+async def gremlins_exception_handler(request: Request, exc: DRYADAIException) -> JSONResponse:
     """
     Handler for custom DRYAD.AI exceptions.
     

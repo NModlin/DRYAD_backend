@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-import { GremlinsAIClient, Conversation, Message } from '@gremlins-ai/sdk';
+import DryadAIClient, { Conversation, Message, SystemAgent } from './dryad-client';
 
 // Styled Components
 const AppContainer = styled.div`
@@ -137,15 +137,35 @@ const ConnectionStatus = styled.div<{ connected: boolean }>`
   font-size: 0.9rem;
 `;
 
+const AgentSelector = styled.select`
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.9rem;
+  margin-left: 1rem;
+`;
+
+const AgentInfo = styled.div`
+  background: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+  color: #666;
+`;
+
 // Main App Component
 const App: React.FC = () => {
-  const [client, setClient] = useState<GremlinsAIClient | null>(null);
+  const [client, setClient] = useState<DryadAIClient | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [agents, setAgents] = useState<SystemAgent[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState<string>('default');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -153,22 +173,26 @@ const App: React.FC = () => {
   useEffect(() => {
     const initClient = async () => {
       try {
-        const gremlinsClient = new GremlinsAIClient({
-          baseUrl: process.env.REACT_APP_GREMLINS_AI_URL || 'http://localhost:8000',
-          apiKey: process.env.REACT_APP_GREMLINS_AI_API_KEY,
+        const dryadClient = new DryadAIClient({
+          baseUrl: process.env.REACT_APP_DRYAD_AI_URL || 'http://localhost:8000',
+          apiKey: process.env.REACT_APP_DRYAD_AI_API_KEY,
         });
 
         // Test connection
-        await gremlinsClient.getSystemHealth();
-        setClient(gremlinsClient);
+        await dryadClient.getSystemHealth();
+        setClient(dryadClient);
         setIsConnected(true);
 
+        // Load available agents
+        const availableAgents = await dryadClient.getAgents();
+        setAgents(availableAgents);
+
         // Create initial conversation
-        const newConversation = await gremlinsClient.createConversation('React Chat Session');
+        const newConversation = await dryadClient.createConversation('Dryad.AI Chat Session');
         setConversation(newConversation);
         
       } catch (err) {
-        setError(`Failed to connect to GremlinsAI: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setError(`Failed to connect to Dryad.AI: ${err instanceof Error ? err.message : 'Unknown error'}`);
         setIsConnected(false);
       }
     };
@@ -199,11 +223,12 @@ const App: React.FC = () => {
     setMessages(prev => [...prev, newUserMessage]);
 
     try {
-      // Send to GremlinsAI
+      // Send to Dryad.AI
       const response = await client.invokeAgent({
         input: userMessage,
         conversation_id: conversation.id,
         save_conversation: true,
+        use_multi_agent: selectedAgent !== 'default'
       });
 
       // Add AI response to UI
@@ -261,22 +286,43 @@ const App: React.FC = () => {
     </MessageBubble>
   );
 
+  const getSelectedAgentInfo = () => {
+    if (selectedAgent === 'default') {
+      return { name: 'Default Agent', description: 'Standard AI assistant' };
+    }
+    const agent = agents.find(a => a.agent_id === selectedAgent);
+    return agent ? { name: agent.display_name, description: agent.description || 'No description available' } : null;
+  };
+
+  const agentInfo = getSelectedAgentInfo();
+
   return (
     <AppContainer>
       <Header>
-        <Title>🤖 GremlinsAI Chat</Title>
-        <Subtitle>Powered by GremlinsAI React SDK</Subtitle>
+        <Title>🤖 Dryad.AI Chat</Title>
+        <Subtitle>Powered by Dryad.AI Multi-Agent System</Subtitle>
       </Header>
 
       <ConnectionStatus connected={isConnected}>
-        {isConnected ? '🟢 Connected to GremlinsAI' : '🔴 Disconnected from GremlinsAI'}
+        {isConnected ? '🟢 Connected to Dryad.AI' : '🔴 Disconnected from Dryad.AI'}
       </ConnectionStatus>
+
+      {agentInfo && (
+        <AgentInfo>
+          <strong>Agent:</strong> {agentInfo.name} - {agentInfo.description}
+        </AgentInfo>
+      )}
 
       <ChatContainer>
         <MessagesContainer>
           {messages.length === 0 && (
             <MessageBubble isUser={false}>
-              👋 Hello! I'm your GremlinsAI assistant. How can I help you today?
+              👋 Hello! I'm your Dryad.AI assistant. How can I help you today?
+              {agents.length > 0 && (
+                <div style={{ marginTop: '1rem' }}>
+                  <strong>Available Agents:</strong> {agents.length} specialized agents ready to assist you.
+                </div>
+              )}
             </MessageBubble>
           )}
           
@@ -297,18 +343,32 @@ const App: React.FC = () => {
         <InputContainer>
           <MessageInput
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => setInputValue(e.targetValue)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
             rows={3}
             disabled={!isConnected || isLoading}
           />
-          <SendButton
-            onClick={sendMessage}
-            disabled={!isConnected || !inputValue.trim() || isLoading}
-          >
-            {isLoading ? '⏳' : '📤'} Send
-          </SendButton>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <AgentSelector
+              value={selectedAgent}
+              onChange={(e) => setSelectedAgent(e.target.value)}
+              disabled={!isConnected}
+            >
+              <option value="default">Default Agent</option>
+              {agents.map(agent => (
+                <option key={agent.agent_id} value={agent.agent_id}>
+                  {agent.display_name} ({agent.tier})
+                </option>
+              ))}
+            </AgentSelector>
+            <SendButton
+              onClick={sendMessage}
+              disabled={!isConnected || !inputValue.trim() || isLoading}
+            >
+              {isLoading ? '⏳' : '📤'} Send
+            </SendButton>
+          </div>
         </InputContainer>
       </ChatContainer>
     </AppContainer>

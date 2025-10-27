@@ -12,7 +12,7 @@ from enum import Enum
 
 from app.core.agent import agent_graph_app
 from app.core.multi_agent import multi_agent_orchestrator
-from app.core.exceptions import DRYAD.AIException, ErrorCode
+from app.core.exceptions import DRYADAIException, ErrorCode
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class AgentSystem:
     async def execute_agent_task(self, task: AgentTask) -> Dict[str, Any]:
         """Execute an agent task and return the result."""
         if len(self.active_tasks) >= self.max_concurrent_tasks:
-            raise DRYAD.AIException(
+            raise DRYADAIException(
                 ErrorCode.RATE_LIMIT_EXCEEDED,
                 "Maximum concurrent agent tasks reached"
             )
@@ -103,13 +103,13 @@ class AgentSystem:
             task.status = AgentStatus.TIMEOUT
             task.error = f"Task timed out after {task.timeout} seconds"
             logger.error(f"Agent task {task.task_id} timed out")
-            raise DRYAD.AIException(ErrorCode.TIMEOUT, task.error)
+            raise DRYADAIException(ErrorCode.TIMEOUT, task.error)
             
         except Exception as e:
             task.status = AgentStatus.ERROR
             task.error = str(e)
             logger.error(f"Agent task {task.task_id} failed: {e}")
-            raise DRYAD.AIException(ErrorCode.AGENT_EXECUTION_FAILED, str(e))
+            raise DRYADAIException(ErrorCode.AGENT_EXECUTION_FAILED, str(e))
             
         finally:
             # Move to history and clean up

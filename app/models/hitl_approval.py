@@ -196,7 +196,7 @@ class ConsultationMessage(Base):
     message = Column(Text, nullable=False)
 
     # Metadata
-    metadata = Column(JSONB, nullable=True)
+    message_metadata = Column(JSONB, nullable=True)
 
     # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)

@@ -37,6 +37,12 @@
    - Access control
    - Performance characteristics
 
+4. **[Why We Need Memory Keepers](WHY_WE_NEED_MEMORY_KEEPERS.md)**
+   - Business case for memory management
+   - Traditional database limitations
+   - Memory Guild benefits
+   - Real-world use cases
+
 #### Advanced Architecture
 4. **[Orchestration Architecture](architecture/ORCHESTRATION_ARCHITECTURE.md)** (Coming Soon)
    - Task routing and execution
@@ -156,12 +162,12 @@
 | Section | Files | Pages | Status |
 |---------|-------|-------|--------|
 | Getting Started | 1 | 1 | ✅ Complete |
-| Architecture | 3 | 3 | ✅ Complete |
+| Architecture | 4 | 4 | ✅ Complete |
 | Templates | 2 | 2 | ✅ Complete |
 | Principles | 1 | 1 | ✅ Complete |
 | Integration | 2 | 2 | ✅ Complete |
 | Reference | 1 | 1 | ✅ Complete |
-| **TOTAL** | **10** | **10** | **✅ Complete** |
+| **TOTAL** | **11** | **11** | **✅ Complete** |
 
 ---
 
@@ -253,7 +259,7 @@ This documentation is updated:
 - **Monthly** - New features and examples
 - **Quarterly** - Major revisions and reorganization
 
-Last updated: **2025-10-19**
+Last updated: **2025-10-25**
 
 ---
 

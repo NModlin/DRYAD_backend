@@ -1,10 +1,9 @@
 {
-  "name": "gremlins-ai-react-chat",
+  "name": "dryad-console",
   "version": "1.0.0",
-  "description": "React chat application using DRYAD.AI SDK",
+  "description": "Dryad Console - Professional interface for DRYAD.AI backend",
   "private": true,
   "dependencies": {
-    "@dryad-ai/sdk": "^1.0.0-beta.1",
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",

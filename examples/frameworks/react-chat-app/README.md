@@ -1,227 +1,159 @@
-# DRYAD.AI React Chat App
+# Dryad Console
 
-A complete React chat application demonstrating the DRYAD.AI JavaScript SDK with modern React patterns, TypeScript, and styled-components.
+A professional management interface for the DRYAD.AI backend. The Dryad Console provides a comprehensive interface for interacting with 20+ specialized agents through an intuitive chat experience.
 
-## 🚀 Features
+## Features
 
-- **Real-time Chat Interface** with beautiful UI
-- **Conversation Management** with persistent history
-- **Markdown Rendering** with syntax highlighting
-- **TypeScript Support** throughout
-- **Styled Components** for modern styling
-- **Error Handling** with user-friendly messages
-- **Loading States** with progress indicators
-- **Responsive Design** for all screen sizes
+- **Real-time Chat**: Seamless conversation with AI agents
+- **Multi-Agent Support**: Choose from 20+ specialized agents
+- **Conversation History**: Persistent chat sessions
+- **Markdown Support**: Rich text rendering with code highlighting
+- **Agent Selection**: Dropdown to choose specific agents
+- **WebSocket Integration**: Real-time updates and progress tracking
 
-## 📦 Installation
+## Quick Start
 
-```bash
-# Install dependencies
-npm install
+### Prerequisites
 
-# Start development server
-npm start
+- Node.js (v16 or higher)
+- npm or yarn
+- Dryad.AI backend running on `http://localhost:8000`
 
-# Build for production
-npm run build
+### Installation
+
+1. **Clone or navigate to this directory**:
+   ```bash
+   cd examples/frameworks/react-chat-app
+   ```
+
+2. **Run setup script** (choose based on your OS):
+
+   **Windows:**
+   ```cmd
+   setup.bat
+   ```
+
+   **Linux/Mac:**
+   ```bash
+   chmod +x setup.sh
+   ./setup.sh
+   ```
+
+3. **Configure environment** (if needed):
+   Edit the `.env` file to point to your Dryad backend:
+   ```env
+   REACT_APP_DRYAD_AI_URL=http://localhost:8000
+   REACT_APP_DRYAD_AI_API_KEY=your-api-key-here
+   ```
+
+4. **Start the development server**:
+   ```bash
+   npm start
+   ```
+
+5. **Open your browser** to `http://localhost:3000`
+
+## API Endpoints Used
+
+The interface connects to the following Dryad.AI endpoints:
+
+- **Agent Chat**: `POST /api/v1/agent/chat` - Main chat endpoint with conversation context
+- **Conversation Management**: `GET/POST /api/v1/chat-history/conversations` - Manage chat sessions
+- **Agent Registry**: `GET /api/v1/agent-registry/agents` - List available agents
+- **Health Check**: `GET /api/v1/health/` - Verify backend connectivity
+
+## Available Agents
+
+The interface automatically discovers and displays all available agents from the Dryad registry, including:
+
+- **Orchestrator Agents**: Master coordination and workflow management
+- **Specialist Agents**: Domain-specific expertise (coding, analysis, research)
+- **Execution Agents**: Task execution and tool usage
+
+## Customization
+
+### Adding New Agent Types
+
+To add support for additional agent types, modify the `AgentSelector` component in `src/App.tsx`:
+
+```typescript
+// Add new agent options
+<option value="custom_agent">Custom Agent</option>
 ```
 
-## 🔧 Configuration
+### Styling
+
+The interface uses styled-components for styling. Modify the styled components in `src/App.tsx` to customize the appearance.
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REACT_APP_DRYAD_AI_URL` | Dryad backend URL | `http://localhost:8000` |
+| `REACT_APP_DRYAD_AI_API_KEY` | API key for authentication | (optional) |
+| `REACT_APP_ENV` | Environment mode | `development` |
 
-```bash
-# DRYAD.AI API Configuration
-REACT_APP_GREMLINS_AI_URL=http://localhost:8000
-REACT_APP_GREMLINS_AI_API_KEY=your-api-key-here
-```
+## Development
 
-### DRYAD.AI Server
-
-Make sure your DRYAD.AI Backend is running:
-
-```bash
-# In your DRYAD.AI Backend directory
-python start.py
-```
-
-The app will connect to `http://localhost:8000` by default.
-
-## 🏗️ Project Structure
+### Project Structure
 
 ```
 src/
-├── App.tsx              # Main application component
-├── index.tsx            # React app entry point
-├── components/          # Reusable components
-│   ├── ChatMessage.tsx  # Individual message component
-│   ├── MessageInput.tsx # Message input component
-│   └── LoadingSpinner.tsx # Loading indicator
-├── hooks/               # Custom React hooks
-│   ├── useDRYAD.AI.ts # DRYAD.AI client hook
-│   └── useChat.ts       # Chat management hook
-├── types/               # TypeScript type definitions
-│   └── chat.ts          # Chat-related types
-└── styles/              # Styled components
-    └── theme.ts         # Theme configuration
+├── App.tsx                 # Main application component
+├── dryad-client.ts         # Dryad.AI API client
+├── index.tsx              # Application entry point
+└── ...                    # Other React files
 ```
 
-## 🎨 Styling
-
-This app uses **styled-components** for styling with a modern design system:
-
-- **Gradient backgrounds** for visual appeal
-- **Smooth animations** and transitions
-- **Responsive design** for mobile and desktop
-- **Dark/light theme** support (configurable)
-- **Consistent spacing** and typography
-
-## 🔌 DRYAD.AI Integration
-
-### Client Setup
-
-```typescript
-import { DRYAD.AIClient } from '@gremlins-ai/sdk';
-
-const client = new DRYAD.AIClient({
-  baseUrl: process.env.REACT_APP_GREMLINS_AI_URL || 'http://localhost:8000',
-  apiKey: process.env.REACT_APP_GREMLINS_AI_API_KEY,
-});
-```
-
-### Key Features Used
-
-- **Agent Invocation** - Send messages to AI
-- **Conversation Management** - Create and manage conversations
-- **Error Handling** - Graceful error handling
-- **Health Checking** - Verify server connectivity
-
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
-```
-
-## 🚀 Deployment
-
-### Build for Production
+### Building for Production
 
 ```bash
 npm run build
 ```
 
-### Deploy to Netlify
+The build artifacts will be stored in the `build/` directory.
 
-1. Build the project: `npm run build`
-2. Deploy the `build` folder to Netlify
-3. Set environment variables in Netlify dashboard
-
-### Deploy to Vercel
-
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push
-
-### Docker Deployment
-
-```dockerfile
-FROM node:18-alpine as build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-## 🔧 Customization
-
-### Adding New Features
-
-1. **File Upload**: Add document upload functionality
-2. **Voice Input**: Integrate speech-to-text
-3. **Multi-Agent**: Support multi-agent workflows
-4. **RAG Integration**: Add document Q&A features
-
-### Styling Customization
-
-Edit `src/styles/theme.ts` to customize:
-
-- Colors and gradients
-- Typography and fonts
-- Spacing and layout
-- Animation timings
-
-### Component Customization
-
-All components are modular and can be easily customized:
-
-- `ChatMessage` - Individual message styling
-- `MessageInput` - Input field and send button
-- `LoadingSpinner` - Loading indicators
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-1. **CORS Errors**
-   - Ensure DRYAD.AI Backend allows your domain
-   - Check CORS configuration in backend
-
-2. **Connection Failed**
-   - Verify DRYAD.AI server is running
-   - Check the API URL in environment variables
-
-3. **Build Errors**
-   - Clear node_modules: `rm -rf node_modules && npm install`
-   - Check TypeScript errors: `npm run type-check`
+1. **Connection Failed**: Ensure the Dryad backend is running on the configured URL
+2. **Agents Not Loading**: Check if the agent registry endpoint is accessible
+3. **Build Errors**: Verify all dependencies are installed with `npm install`
 
 ### Debug Mode
 
-Enable debug logging:
-
-```typescript
-// In App.tsx
-const client = new DRYAD.AIClient({
-  baseUrl: process.env.REACT_APP_GREMLINS_AI_URL,
-  apiKey: process.env.REACT_APP_GREMLINS_AI_API_KEY,
-  // Add debug logging
-  debug: process.env.NODE_ENV === 'development'
-});
+Enable debug logging by setting the environment variable:
+```env
+REACT_APP_DEBUG=true
 ```
 
-## 📚 Learn More
+## Integration with Dryad Backend
 
-- [React Documentation](https://reactjs.org/)
-- [TypeScript Documentation](https://www.typescriptlang.org/)
-- [Styled Components Documentation](https://styled-components.com/)
-- [DRYAD.AI Documentation](https://docs.DRYAD.AI.com)
+This interface is designed to work seamlessly with the Dryad.AI backend architecture:
 
-## 🤝 Contributing
+- **Agent Registry Integration**: Automatically discovers and displays available agents
+- **Conversation Context**: Maintains conversation history for context-aware responses
+- **Multi-Agent Orchestration**: Supports both single-agent and multi-agent workflows
+- **Real-time Communication**: Uses WebSocket for live updates
+
+## Contributing
+
+To contribute to this interface:
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test with a running Dryad backend
 5. Submit a pull request
 
-## 📄 License
+## License
 
-This example is licensed under the MIT License - see the [LICENSE](../../../LICENSE) file for details.
+This project is part of the Dryad.AI ecosystem and follows the same licensing terms.
 
----
+## Support
 
-**Happy coding with DRYAD.AI! 🤖✨**
+For issues and questions:
+- Check the Dryad.AI documentation
+- Open an issue in the repository
+- Contact the Dryad.AI development team
