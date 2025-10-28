@@ -94,6 +94,16 @@ class ServiceStatus(BaseModel):
     status: str = Field(..., description="Service status (available, degraded, unavailable)")
     fallback_available: bool = Field(..., description="Whether fallback functionality is available")
     capabilities_affected: List[str] = Field(default_factory=list, description="List of affected capabilities")
+    last_check: Optional[datetime] = Field(None, description="Last check timestamp")
+    error_message: Optional[str] = Field(None, description="Error message if service is unavailable")
+    circuit_breaker_state: Optional[str] = Field(None, description="Circuit breaker state")
+    degradation_reason: Optional[str] = Field(None, description="Reason for degradation")
+    
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None
+        }
+    )
 
 
 class ValidationErrorDetail(BaseModel):
