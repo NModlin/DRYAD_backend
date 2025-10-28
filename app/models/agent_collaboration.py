@@ -300,4 +300,16 @@ def get_default_collaboration_patterns() -> List[Dict[str, Any]]:
             "max_execution_time": 300
         }
     ]
+    
+    
+    class WorkflowStatus(BaseModel):
+        """Schema for workflow status."""
+        workflow_id: str
+        status: CollaborationStatus
+        current_step: Optional[int] = None
+        total_steps: Optional[int] = None
+        progress_percentage: Optional[float] = None
+        estimated_completion: Optional[datetime] = None
+        active_agents: Optional[List[str]] = None
+        last_activity: Optional[datetime] = None
 

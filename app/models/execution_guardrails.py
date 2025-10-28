@@ -271,4 +271,21 @@ def get_default_guardrail_configs() -> List[Dict[str, Any]]:
             "action": GuardrailAction.WARN_USER
         }
     ]
+    
+    
+    class GuardrailViolationResponse(BaseModel):
+        """Schema for guardrail violation response."""
+        id: str
+        execution_id: str
+        agent_id: str
+        guardrail_type: GuardrailType
+        severity: GuardrailSeverity
+        action_taken: GuardrailAction
+        violation_description: str
+        triggered_at: datetime
+        resolved: bool
+        resolved_at: Optional[datetime] = None
+        
+        class Config:
+            from_attributes = True
 

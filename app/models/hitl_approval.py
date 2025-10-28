@@ -336,4 +336,21 @@ def get_default_approval_policies() -> List[Dict[str, Any]]:
             "notify_on_request": True
         }
     ]
+    
+    
+    class PendingApprovalCreate(BaseModel):
+        """Schema for creating a pending approval."""
+        approval_id: str
+        execution_id: str
+        agent_id: str
+        agent_name: str
+        action_type: ActionType
+        action_description: str
+        action_details: Dict[str, Any]
+        risk_level: RiskLevel
+        risk_factors: Optional[List[str]] = None
+        impact_assessment: Optional[str] = None
+        requested_by: Optional[str] = None
+        priority: int = 5
+        expires_at: Optional[datetime] = None
 
