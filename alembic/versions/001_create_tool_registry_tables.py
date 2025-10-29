@@ -7,7 +7,6 @@ Create Date: 2025-10-28 20:15:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '001_create_tool_registry_tables'
@@ -25,8 +24,8 @@ def upgrade() -> None:
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('version', sa.String(50), nullable=False, server_default='1.0.0'),
-        sa.Column('function_signature', postgresql.JSONB, nullable=False),
-        sa.Column('permissions', postgresql.JSONB, nullable=False, server_default='{}'),
+        sa.Column('function_signature', sa.JSON, nullable=False),
+        sa.Column('permissions', sa.JSON, nullable=False, server_default='{}'),
         sa.Column('requires_sandbox', sa.Boolean(), nullable=False, server_default='false'),
         sa.Column('sandbox_image', sa.String(255), nullable=True),
         sa.Column('max_session_duration', sa.Integer(), nullable=False, server_default='300'),
@@ -56,7 +55,7 @@ def upgrade() -> None:
         sa.Column('id', sa.String(36), nullable=False),
         sa.Column('tool_id', sa.String(36), nullable=False),
         sa.Column('agent_id', sa.String(36), nullable=False),
-        sa.Column('session_state', postgresql.JSONB, nullable=True),
+        sa.Column('session_state', sa.JSON, nullable=True),
         sa.Column('execution_id', sa.String(36), nullable=True),
         sa.Column('sandbox_id', sa.String(255), nullable=True),
         sa.Column('sandbox_status', sa.String(50), nullable=True),
@@ -88,7 +87,7 @@ def upgrade() -> None:
     op.create_table('memory_contexts',
         sa.Column('id', sa.String(36), nullable=False),
         sa.Column('agent_id', sa.String(36), nullable=False),
-        sa.Column('context_data', postgresql.JSONB, nullable=False),
+        sa.Column('context_data', sa.JSON, nullable=False),
         sa.Column('parent_context_id', sa.String(36), nullable=True),
         sa.Column('context_type', sa.String(50), nullable=False, server_default='general'),
         sa.Column('priority', sa.Integer(), nullable=False, server_default='1'),
@@ -106,7 +105,7 @@ def upgrade() -> None:
         sa.Column('error_message', sa.Text(), nullable=False),
         sa.Column('component', sa.String(255), nullable=False),
         sa.Column('fix_applied', sa.Boolean(), nullable=False, server_default='false'),
-        sa.Column('fix_details', postgresql.JSONB, nullable=True),
+        sa.Column('fix_details', sa.JSON, nullable=True),
         sa.Column('severity', sa.String(50), nullable=False, server_default='medium'),
         sa.Column('created_at', sa.DateTime(), nullable=False, server_default=sa.text('now()')),
         sa.Column('resolved_at', sa.DateTime(), nullable=True),

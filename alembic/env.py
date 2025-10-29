@@ -42,16 +42,11 @@ from app.models.skill_tree import SkillTree, SkillNode
 from app.models.skill_progress import AgentSkillProgress
 from app.models.progression_path import ProgressionPath
 
-# Import Agentic University models (Level 6)
-from app.models.university import University
-from app.models.curriculum import CurriculumPath, CurriculumLevel, AgentCurriculumProgress
-from app.models.competition import Competition, CompetitionRound, Leaderboard, LeaderboardRanking
-
 # Import Enhanced University models (Level 6 - Enhanced)
 from app.database.models_university import (
-    UniversityAgent, CurriculumChallenge, AgentProgress, TrainingDataCollection,
-    ImprovementProposal, Achievement, AgentAchievement, CompetitionParticipant,
-    CompetitionMatch, CompetitionLeaderboard, UniversityMembership
+    University, UniversityAgent, CurriculumPath, CurriculumLevel, AgentProgress, TrainingDataCollection,
+    ImprovementProposal, Achievement, AgentAchievement, Competition, CompetitionParticipant,
+    CompetitionMatch
 )
 
 # this is the Alembic Config object, which provides

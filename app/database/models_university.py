@@ -375,7 +375,7 @@ class TrainingDataCollection(Base):
     data_type = Column(String(100), nullable=False)
     raw_data = Column(JSON, nullable=False)
     processed_data = Column(JSON)
-    metadata = Column(JSON)
+    collection_metadata = Column(JSON)
     
     # Quality metrics (UniAugment enhancements)
     quality_score = Column(Float, default=0.0)

@@ -7,6 +7,7 @@ Create Date: 2025-10-23 15:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects import sqlite
 
 # revision identifiers, used by Alembic.
