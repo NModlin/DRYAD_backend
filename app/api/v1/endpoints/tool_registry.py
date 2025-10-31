@@ -26,6 +26,7 @@ from app.services.tool_registry.exceptions import (
     InvalidToolSchemaError,
     PermissionAlreadyExistsError,
 )
+from app.core.security import get_current_user, User, require_permission
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -46,6 +47,7 @@ def get_tool_registry_service(db: AsyncSession = Depends(get_db)) -> ToolRegistr
 async def register_tool(
     tool_data: ToolCreate,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Register a new tool in the registry.
@@ -91,6 +93,7 @@ async def list_tools(
     offset: int = Query(0, ge=0, description="Number of tools to skip"),
     active_only: bool = Query(False, description="Only return active tools"),
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     List all tools with pagination.
@@ -116,6 +119,7 @@ async def list_tools(
 async def get_tool_versions(
     name: str,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get all versions of a tool.
@@ -149,6 +153,7 @@ async def get_tool(
     name: str,
     version: str,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Get a specific tool by name and version.
@@ -184,6 +189,7 @@ async def update_tool(
     version: str,
     update_data: ToolUpdate,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Update tool metadata.
@@ -203,12 +209,14 @@ async def update_tool(
         404: Tool not found
     """
     try:
-        return await service.update_tool(name, version, update_data)
-    except ToolNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+            # Check if user has admin permissions to update tools
+            require_permission(current_user, "admin")
+            return await service.update_tool(name, version, update_data)
+        except ToolNotFoundError as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            )
 
 
 @router.post(
@@ -223,6 +231,7 @@ async def grant_permission(
     version: str,
     permission_data: ToolPermissionCreate,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     Grant permission for an agent or role to use a tool.
@@ -232,6 +241,7 @@ async def grant_permission(
         version: Tool version
         permission_data: Permission creation data
         service: Tool registry service instance
+        current_user: Current authenticated user
 
     Returns:
         Created permission response
@@ -241,6 +251,8 @@ async def grant_permission(
         409: Permission already exists
     """
     try:
+        # Check if user has admin permissions to grant tool permissions
+        require_permission(current_user, "admin")
         return await service.grant_permission(name, version, permission_data)
     except ToolNotFoundError as e:
         raise HTTPException(
@@ -264,6 +276,7 @@ async def list_permissions(
     name: str,
     version: str,
     service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     List all permissions for a tool.
@@ -281,6 +294,125 @@ async def list_permissions(
     """
     try:
         return await service.list_permissions(name, version)
+    except ToolNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+@router.delete(
+    "/tools/{name}/{version}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a tool",
+    description="Delete a specific tool by name and version",
+)
+async def delete_tool(
+    name: str,
+    version: str,
+    service: ToolRegistryService = Depends(get_tool_registry_service),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Delete a specific tool by name and version.
+
+    Args:
+        name: Tool name
+        version: Tool version
+        service: Tool registry service instance
+        current_user: Current authenticated user
+
+    Returns:
+        No content on success
+
+    Raises:
+        404: Tool not found
+    """
+    try:
+        # Check if user has admin permissions to delete tools
+        require_permission(current_user, "admin")
+        await service.delete_tool(name, version)
+        return {"message": "Tool deleted successfully"}
+    except ToolNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/tools/{tool_id}/execute",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="Execute a tool",
+    description="Execute a registered tool with input parameters",
+)
+async def execute_tool(
+    tool_id: str,
+    input_data: dict,
+    agent_id: str = Query(..., description="Agent executing the tool"),
+    user_id: str | None = Query(None, description="Optional user context"),
+    service: ToolRegistryService = Depends(get_tool_registry_service),
+):
+    """
+    Execute a registered tool with the provided input data.
+
+    Args:
+        tool_id: Tool ID to execute
+        input_data: Input parameters for tool execution
+        agent_id: ID of the agent executing the tool
+        user_id: Optional user context
+        service: Tool registry service instance
+
+    Returns:
+        Execution result
+
+    Raises:
+        404: Tool not found
+        400: Invalid input data
+    """
+    try:
+        execution_result = await service.execute_tool(
+            tool_id=tool_id,
+            input_data=input_data,
+            agent_id=agent_id,
+            user_id=user_id
+        )
+        return execution_result
+    except ToolNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/tools/{tool_id}/history",
+    response_model=dict,
+    summary="Get tool execution history",
+    description="Get execution history for a specific tool",
+)
+async def get_tool_history(
+    tool_id: str,
+    limit: int = Query(50, ge=1, le=1000, description="Maximum number of history records"),
+    offset: int = Query(0, ge=0, description="Number of records to skip"),
+    service: ToolRegistryService = Depends(get_tool_registry_service),
+):
+    """
+    Get execution history for a specific tool.
+
+    Args:
+        tool_id: Tool ID to get history for
+        limit: Maximum number of history records to return
+        offset: Number of records to skip
+        service: Tool registry service instance
+
+    Returns:
+        Paginated execution history
+
+    Raises:
+        404: Tool not found
+    """
+    try:
+        return await service.get_tool_history(tool_id, limit=limit, offset=offset)
     except ToolNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

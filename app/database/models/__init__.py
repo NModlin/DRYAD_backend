@@ -11,6 +11,12 @@ from app.database import (
     Organization, ClientApplication, SharedKnowledge
 )
 
+# Import tool registry models - CRITICAL for Week 1 completion
+from .tool_registry import (
+    ToolRegistry, ToolPermission, ToolSession, ToolExecution,
+    MemoryContext, ErrorLog
+)
+
 # Re-export for easy access
 __all__ = [
     # Include Base - CRITICAL for university endpoints
@@ -18,5 +24,8 @@ __all__ = [
     'User', 'RefreshToken', 'Conversation', 'Message', 'Document', 'DocumentChunk',
     'DocumentAnalytics', 'SearchAnalytics', 'UserEngagement', 'DocumentVersion',
     'DocumentChangeLog', 'SearchQuery', 'AgentInteraction', 'MultiModalContent',
-    'Organization', 'ClientApplication', 'SharedKnowledge'
+    'Organization', 'ClientApplication', 'SharedKnowledge',
+    # Tool registry models - CRITICAL for Week 1 completion
+    'ToolRegistry', 'ToolPermission', 'ToolSession', 'ToolExecution',
+    'MemoryContext', 'ErrorLog'
 ]

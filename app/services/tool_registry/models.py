@@ -70,7 +70,7 @@ class Tool(Base):
 
     # Relationships
     permissions = relationship(
-        "app.services.tool_registry.models.ToolPermission",
+        "ToolPermission",
         back_populates="tool",
         cascade="all, delete-orphan",
     )

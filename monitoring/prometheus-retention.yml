@@ -1,0 +1,94 @@
+# Prometheus Time-Series Data Retention Configuration for Week 4
+# Optimized for 7-day operational period monitoring
+
+# Global retention settings
+global:
+  retention: 7d                    # Keep data for 7 days (1 week)
+  retention-size: 10GB            # Maximum size before cleanup
+
+# Storage configuration
+storage:
+  tsdb:
+    # High-frequency metrics (keep for shorter period)
+    path: "/prometheus/data"
+    wal-segment-size: 32MB
+    
+    # Configuration for different metric categories
+    wal-compression: true
+    allow-overlapping-blocks: false
+
+# Retention policies by metric type
+metric_retention:
+  # Critical system metrics - keep longer for trend analysis
+  - match: '{job="node"}'
+    retention: 15d                 # 15 days for system metrics
+    
+  # Application metrics - standard retention
+  - match: '{job="dryad-backend"}'
+    retention: 7d                  # 7 days for app metrics
+    
+  # High-cardinality metrics - shorter retention
+  - match: '{job="cadvisor"}'
+    retention: 3d                  # 3 days for container metrics
+    
+  # Database metrics - medium retention
+  - match: '{job="postgres"}'
+    retention: 10d                 # 10 days for DB metrics
+    
+  # LLM metrics - standard retention
+  - match: '{__name__=~"llm_.*"}'
+    retention: 7d                  # 7 days for LLM metrics
+    
+  # Agent metrics - standard retention
+  - match: '{__name__=~"agent_.*"}'
+    retention: 7d                  # 7 days for agent metrics
+
+# Time-series database optimization
+tsdb_config:
+  # Block size configuration
+  min-block-duration: 2h
+  max-block-duration: 36h
+  
+  # Checkpoint and WAL settings
+  checkpoint-delay: 60s
+  max-segment-file-size: 64MB
+  
+  # Out-of-order ingestion
+  enable-out-of-order-ingestion: false
+
+# Compaction settings for week 4 operations
+compaction:
+  enabled: true
+  # Compact data every 2 hours
+  compaction-interval: 2h
+  # Maximum time between compactions
+  max-compaction-delay: 4h
+
+# External storage (for long-term retention)
+# remote_write:
+#   - url: "https://long-term-storage.example.com/api/v1/write"
+#     basic_auth:
+#       username: "dryad-monitoring"
+#       password: "${REMOTE_WRITE_PASSWORD}"
+#     queue_config:
+#       max_samples_per_send: 5000
+#       batch_send_deadline: 5s
+
+# Remote read for historical data
+# remote_read:
+#   - url: "https://long-term-storage.example.com/api/v1/read"
+#     basic_auth:
+#       username: "dryad-monitoring"
+#       password: "${REMOTE_READ_PASSWORD}"
+
+# Alert for retention issues
+alerts:
+  - alert: PrometheusRetentionWarning
+    expr: prometheus_tsdb_storage_bytes_total / prometheus_tsdb_storage_bytes_max > 0.8
+    for: 1h
+    labels:
+      severity: warning
+      component: prometheus
+    annotations:
+      summary: "Prometheus storage approaching retention limit"
+      description: "Storage usage is {{ $value }}% of maximum"

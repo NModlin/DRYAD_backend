@@ -1,0 +1,243 @@
+# DRYAD Grove IDE - Development Prompt for Coding Agent
+
+## 🎯 Project Overview
+You are tasked with building the **DRYAD Grove IDE**, a comprehensive integrated development environment that serves as the central hub for governed agentic development (GAD) within the DRYAD ecosystem. This IDE will be the primary workspace where developers create, manage, and orchestrate multi-agent development projects using the established Grove → Branch → Vessel hierarchy.
+
+## 🌲 Ecosystem Context & Branding
+The DRYAD Grove IDE integrates with your existing ecosystem:
+
+### Established Metaphor Hierarchy:
+- **Grove** = Central development environment and project container
+- **Branch** = Individual features, code paths, and development tasks
+- **Vessel** = Completed deliverables, outputs, and knowledge artifacts
+- **Forest Keeper** = Master orchestrator agent (Layer 3 in GAD hierarchy)
+- **Guardian** = Quality review and security agent (Layer 2)
+- **Branch Weaver** = Code execution agent (Layer 1)
+- **Human Provost** = Final oversight and approval (Layer 4)
+
+### Existing Integration Points:
+- ROO-Forge system for GAD mode orchestration
+- DRYAD University System for agent training and curriculum
+- Tool Registry for dynamic capability management
+- Knowledge Trees for project persistence and context
+- Multi-agent dialogue system for collaboration
+
+## 🏗️ Technical Architecture Requirements
+
+### Core IDE Features:
+1. **Project Grove Management**
+   - Create, open, and manage development groves (projects)
+   - Branch management with visual tree representation
+   - Vessel storage for deliverables and knowledge artifacts
+   - Multi-tenant isolation with client separation
+
+2. **GAD Agent Integration**
+   - Visual agent hierarchy display (4-layer GAD system)
+   - Agent orchestration interface with Forest Keeper as central coordinator
+   - Real-time agent collaboration through dialogue system
+   - Guardian quality gate visualization and approval workflows
+
+3. **Knowledge Tree Integration**
+   - Persistent project state in groves/branches/vessels
+   - Context inheritance and learning persistence
+   - Oracle consultation interface for AI guidance
+   - University curriculum integration for agent training
+
+4. **Tool Registry Integration**
+   - Dynamic tool discovery and validation
+   - Custom tool creation through Agent Factory
+   - Permission-based tool access control
+   - Sandbox management for secure tool execution
+
+### Technical Stack Requirements:
+- **Frontend**: Modern web framework (React/Vue/Angular) with real-time updates
+- **Backend**: FastAPI/Flask with DRYAD ecosystem integration
+- **Database**: PostgreSQL with DRYAD models (Grove, Branch, Vessel, etc.)
+- **Real-time**: WebSocket support for agent communication
+- **Authentication**: DRYAD's multi-tenant security model
+- **Container Support**: Docker integration for sandboxed execution
+
+## 🔧 Development Guidelines
+
+### Code Organization:
+```
+dryad-grove-ide/
+├── frontend/                 # Web IDE interface
+│   ├── components/          # React/Vue components
+│   ├── grove-management/    # Project grove UI
+│   ├── branch-editor/       # Code editing interface
+│   ├── vessel-viewer/       # Output/deliverable display
+│   ├── agent-dashboard/     # GAD agent management
+│   └── integration/         # DRYAD ecosystem integration
+├── backend/                 # IDE backend services
+│   ├── api/                # REST endpoints
+│   ├── websocket/          # Real-time communication
+│   ├── grove-service/      # Grove management logic
+│   ├── branch-service/     # Branch/task management
+│   ├── vessel-service/     # Deliverable management
+│   ├── agent-orchestrator/ # GAD agent coordination
+│   └── dryad-integration/  # DRYAD ecosystem connectors
+├── models/                  # Database models
+│   ├── grove_models.py     # Grove/Branch/Vessel schemas
+│   ├── agent_models.py     # GAD agent definitions
+│   └── project_models.py   # Project state management
+├── tests/                   # Comprehensive test suite
+│   ├── unit/               # Component testing
+│   ├── integration/        # DRYAD integration testing
+│   └── e2e/                # End-to-end workflow testing
+└── docs/                    # Documentation
+    ├── api/                # API documentation
+    ├── user-guide/         # IDE user manual
+    └── integration/        # DRYAD integration guide
+```
+
+### Key Development Principles:
+1. **GAD Hierarchy Compliance**: All features must support the 4-layer GAD system
+2. **DRYAD Integration**: Seamless integration with existing ecosystem components
+3. **Multi-tenancy**: Support for multiple clients with proper isolation
+4. **Real-time Collaboration**: Live agent coordination and communication
+5. **Knowledge Persistence**: All work must be stored in knowledge trees
+6. **Quality Gates**: Guardian review integration throughout development workflow
+
+## 🎨 User Interface Requirements
+
+### Main IDE Layout:
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ DRYAD Grove IDE Header - Agent Status & Grove Selection            │
+├─────────────┬─────────────────────────────────────┬─────────────────┤
+│             │                                     │                 │
+│ Grove Tree  │        Main Development Area        │   Agent Panel   │
+│ Management  │                                     │                 │
+│             │    - Code Editor (Branch)          │   Forest Keeper │
+│   [🌲]      │    - Output Viewer (Vessel)        │   Guardian      │
+│   [🌳]      │    - Agent Collaboration           │   Branch Weaver │
+│   [🗃️]      │    - Quality Gates                 │   Human Provost  │
+│             │                                     │                 │
+├─────────────┼─────────────────────────────────────┼─────────────────┤
+│             │        Status & Progress Bars        │                 │
+│ Tasks &     │        Knowledge Tree Viewer        │    Actions       │
+│ Branches    │                                     │                 │
+│             │                                     │                 │
+└─────────────┴─────────────────────────────────────┴─────────────────┘
+```
+
+### Critical UI Components:
+1. **Grove Explorer**: Visual tree of projects, branches, and vessels
+2. **Agent Collaboration Panel**: Real-time agent status and communication
+3. **Quality Gate Dashboard**: Guardian review status and approvals
+4. **Knowledge Tree Viewer**: Persistent project state and learning
+5. **Tool Registry Interface**: Dynamic tool management and permissions
+
+## 🚀 Implementation Phases
+
+### Phase 1: Core IDE Foundation (Weeks 1-2)
+- Basic grove/branch/vessel management interface
+- File system integration and project loading
+- User authentication and multi-tenant support
+- Basic code editor with syntax highlighting
+
+### Phase 2: DRYAD Integration (Weeks 3-4)
+- DRYAD ecosystem service integration
+- Knowledge tree persistence and retrieval
+- Tool Registry connection and validation
+- Basic agent communication framework
+
+### Phase 3: GAD Agent System (Weeks 5-6)
+- 4-layer GAD agent integration (Forest Keeper, Guardian, Branch Weaver, Human Provost)
+- Agent orchestration interface
+- Quality gate workflow implementation
+- Real-time agent collaboration features
+
+### Phase 4: Advanced Features (Weeks 7-8)
+- Advanced code editing with agent assistance
+- Oracle consultation interface
+- University curriculum integration
+- Performance optimization and testing
+
+## ✅ Success Criteria
+
+### Functional Requirements:
+- [ ] Create and manage development groves (projects)
+- [ ] Visual branch management with GAD agent integration
+- [ ] Vessel storage for deliverables with knowledge persistence
+- [ ] Real-time agent collaboration and communication
+- [ ] Quality gate enforcement through Guardian reviews
+- [ ] DRYAD ecosystem integration (University, Tool Registry, Knowledge Trees)
+- [ ] Multi-tenant client isolation and security
+
+### Technical Requirements:
+- [ ] Web-based IDE with modern responsive UI
+- [ ] Real-time WebSocket communication for agents
+- [ ] RESTful API for all CRUD operations
+- [ ] Docker containerization for development environment
+- [ ] Comprehensive test coverage (>90%)
+- [ ] Performance optimization for concurrent users
+- [ ] Security compliance with DRYAD standards
+
+### Integration Requirements:
+- [ ] ROO-Forge GAD mode integration
+- [ ] DRYAD University System curriculum access
+- [ ] Tool Registry dynamic tool management
+- [ ] Knowledge Tree persistent storage
+- [ ] Multi-agent dialogue system connectivity
+
+## 🔧 Development Commands & Setup
+
+### Initial Setup:
+```bash
+# Clone and setup
+git clone <repository>
+cd dryad-grove-ide
+pip install -r requirements.txt
+npm install
+
+# Database setup
+alembic upgrade head
+python scripts/seed_dryad_data.py
+
+# Start development
+npm run dev  # Frontend
+uvicorn main:app --reload  # Backend
+```
+
+### Testing Commands:
+```bash
+# Run tests
+pytest tests/ --cov=backend --cov-report=html
+npm run test
+
+# Integration testing
+pytest tests/integration/test_dryad_integration.py
+```
+
+## 📚 Documentation Requirements
+
+### Must Include:
+1. **API Documentation**: Complete REST API reference
+2. **User Guide**: Step-by-step IDE usage instructions
+3. **Integration Guide**: DRYAD ecosystem connection setup
+4. **Agent Development**: GAD agent integration tutorial
+5. **Deployment Guide**: Production deployment instructions
+6. **Troubleshooting**: Common issues and solutions
+
+## 🎯 Final Deliverables
+
+1. **Fully Functional IDE**: Complete DRYAD Grove IDE with all features
+2. **DRYAD Integration**: Seamless connection to all ecosystem components
+3. **Comprehensive Tests**: Full test suite with >90% coverage
+4. **Documentation**: Complete user and developer documentation
+5. **Deployment Package**: Production-ready deployment configuration
+6. **Demo Environment**: Working demo showcasing all features
+
+## 🔄 Development Workflow
+
+Follow the GAD lifecycle in your development:
+1. **Plan**: Create detailed implementation plans for each feature
+2. **Review**: Submit code to Guardian (quality review) before integration
+3. **Execute**: Implement features with proper DRYAD integration
+4. **Remember**: Document lessons learned and update knowledge trees
+
+Always maintain DRYAD's security standards and multi-tenant isolation. Ensure all work integrates seamlessly with the existing DRYAD University System and ROO-Forge GAD infrastructure.
+
+**Ready to begin development? Start with Phase 1 and establish the core IDE foundation with grove management capabilities.**
