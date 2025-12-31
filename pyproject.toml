@@ -20,6 +20,7 @@ dependencies = [
     "langgraph>=0.0.39",
     "weaviate-client>=4.5.5",
     "langchain-openai>=0.1.0",
+    "docker>=7.0.0",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
