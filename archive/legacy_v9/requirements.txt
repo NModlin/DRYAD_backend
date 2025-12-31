@@ -1,0 +1,156 @@
+# DRYAD.AI Backend Dependencies
+# Unified installation with automatic GPU detection and acceleration
+# Single installation command: pip install -r requirements.txt
+
+# FastAPI and Server
+fastapi>=0.100.0,<1.0.0
+uvicorn[standard]>=0.20.0,<1.0.0
+
+# LangChain and LangGraph - Core AI Framework
+langchain>=0.1.0,<1.0.0
+langgraph>=0.0.40,<1.0.0
+langchain-community>=0.0.30,<1.0.0
+langchain-core>=0.1.40,<1.0.0
+
+# Search Tools
+duckduckgo-search>=6.0.0,<7.0.0
+
+# Database (Phase 2)
+sqlalchemy>=2.0.0,<3.0.0
+alembic>=1.13.0,<2.0.0
+aiosqlite>=0.19.0,<1.0.0
+
+# Utilities
+python-dotenv>=1.0.0,<2.0.0
+pydantic>=2.0.0,<3.0.0
+
+# OAuth2 Authentication
+PyJWT>=2.8.0,<3.0.0
+cryptography>=41.0.0,<42.0.0
+httpx>=0.25.0,<1.0.0
+
+# Phase 3: Multi-Agent Architecture (Built-in Implementation)
+# Multi-agent system is built-in with no external dependencies
+# CrewAI has been replaced with optimized built-in multi-agent system
+langchain-openai>=0.1.0,<1.0.0
+
+# Phase 4: Data Infrastructure Overhaul - Weaviate Vector Database
+weaviate-client>=4.4.0,<5.0.0
+sentence-transformers>=2.2.0,<3.0.0
+langchain-weaviate>=0.0.1,<1.0.0
+pypdf>=4.0.0,<5.0.0
+python-multipart>=0.0.6,<1.0.0
+
+# CLIP embeddings for multimodal search (using git+https for official OpenAI CLIP)
+# Install with: pip install git+https://github.com/openai/CLIP.git
+# Note: This is optional - multimodal features will be disabled if not installed
+
+# Phase 5: Orchestration & Scalability
+celery>=5.3.0,<6.0.0
+redis>=5.0.0,<6.0.0
+kombu>=5.3.0,<6.0.0
+billiard>=4.2.0,<5.0.0
+
+# Phase 6: API Modernization & Real-time Communication
+strawberry-graphql[fastapi]>=0.215.0,<1.0.0
+websockets>=12.0,<13.0
+
+# Phase 7: Multi-Modal Revolution
+# Audio processing
+openai-whisper>=20231117
+pydub>=0.25.1,<1.0.0
+pyttsx3>=2.90,<3.0.0
+librosa>=0.10.0,<1.0.0
+
+# Video processing
+ffmpeg-python>=0.2.0,<1.0.0
+opencv-python>=4.8.0,<5.0.0
+
+# Image processing
+Pillow>=10.0.0,<11.0.0
+torch>=2.0.0,<3.0.0
+torchvision>=0.15.0,<1.0.0
+
+# Computer vision and OCR (optional)
+# pytesseract>=0.3.10,<1.0.0
+
+# Phase 8: Developer Enablement & Documentation
+jinja2>=3.1.0,<4.0.0
+click>=8.1.0,<9.0.0
+rich>=13.0.0,<14.0.0
+httpx>=0.25.0,<1.0.0
+
+# Local LLM Support with GPU Auto-Detection
+llama-cpp-python>=0.2.0,<1.0.0  # Primary local LLM with GPU support
+langchain-ollama>=0.1.0,<1.0.0
+langchain-huggingface>=0.0.3,<1.0.0
+transformers>=4.35.0,<5.0.0
+accelerate>=0.24.0,<1.0.0
+
+# GPU Detection and Monitoring
+GPUtil>=1.4.0,<2.0.0  # GPU detection and monitoring utilities
+
+# Additional utilities for self-contained operation
+requests>=2.31.0,<3.0.0
+tqdm>=4.65.0,<5.0.0
+passlib[bcrypt]>=1.7.4,<2.0.0
+python-jose[cryptography]>=3.3.0,<4.0.0
+
+# Google Gemini API for Project Proposal Generation
+google-generativeai>=0.3.0,<1.0.0
+pydantic-settings>=2.0.0
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+sqlalchemy>=2.0.23
+alembic>=1.12.1
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+websockets>=12.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
+anyio>=4.2.0
+slowapi>=0.1.9
+structlog>=23.2.0
+python-json-logger>=2.0.7
+python-dateutil>=2.8.2
+pyjwt>=2.8.0
+aiofiles>=23.2.1
+fastapi-cors>=0.0.3
+scikit-learn>=1.3.2
+nltk>=3.8.1
+textblob>=0.17.1
+spacy>=3.7.2
+transformers>=4.36.0
+pandas>=2.1.4
+numpy>=1.25.2
+scipy>=1.11.4
+matplotlib>=3.8.2
+seaborn>=0.13.0
+plotly>=5.17.0
+aiohttp>=3.9.1
+httpx>=0.25.2
+requests>=2.31.0
+cryptography>=41.0.8
+redis>=5.0.1
+aioredis>=2.0.1
+python-docx>=1.1.0
+openpyxl>=3.1.2
+pypdf2>=3.0.1
+pillow>=10.1.0
+canvasapi>=2.1.0
+arxiv>=1.4.8
+pubchempy>=1.0.4
+crossref
+reportlab>=4.0.7
+weasyprint>=60.2
+python-socketio>=5.10.0
+kubernetes
+networkx
+textstat
+jieba
+wordcloud
+sympy
+syllables
+language_tool_python

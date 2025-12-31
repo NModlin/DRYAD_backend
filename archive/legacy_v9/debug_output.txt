@@ -1,0 +1,49 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.11, pytest-7.4.4, pluggy-1.6.0
+rootdir: /dev
+configfile: null
+plugins: anyio-4.12.0, xdist-3.8.0, mock-3.15.1, metadata-3.1.1, cov-4.1.0, asyncio-0.23.8, requests-mock-1.12.1, html-3.2.0, Faker-24.14.1
+asyncio: mode=Mode.STRICT
+collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+________________________ ERROR collecting test session _________________________
+tests/services/test_agent_factory_async.py:24: in <module>
+    from app.services.tool_registry.service import ToolRegistryService
+app/services/tool_registry/__init__.py:17: in <module>
+    from .service import ToolRegistryService
+app/services/tool_registry/service.py:55: in <module>
+    class ToolRegistryService:
+app/services/tool_registry/service.py:568: in ToolRegistryService
+    agent_tier: Optional[str] = None
+E   NameError: name 'Optional' is not defined
+------------------------------- Captured stderr --------------------------------
+Redis connection failed: Error 111 connecting to localhost:6379. Connection refused. - distributed caching disabled
+langchain-ollama not installed. Install with: pip install langchain-ollama
+Failed to initialize LLMProvider.OLLAMA LLM: No module named 'langchain_ollama'
+❌ Failed to initialize LLM: Ollama LLM initialization failed: No module named 'langchain_ollama'. Please ensure Ollama server is running and accessible.
+langchain-ollama not installed. Install with: pip install langchain-ollama
+Failed to initialize LLMProvider.OLLAMA LLM: No module named 'langchain_ollama'
+❌ Failed to initialize LLM: Ollama LLM initialization failed: No module named 'langchain_ollama'. Please ensure Ollama server is running and accessible.
+🚨 JWT_SECRET_KEY not provided in development. Generated temporary key. This key will change on restart, invalidating existing tokens. Set JWT_SECRET_KEY in your .env file for persistent tokens.
+langchain-ollama not installed. Install with: pip install langchain-ollama
+Failed to initialize LLMProvider.OLLAMA LLM: No module named 'langchain_ollama'
+❌ Failed to initialize LLM: Ollama LLM initialization failed: No module named 'langchain_ollama'. Please ensure Ollama server is running and accessible.
+=============================== warnings summary ===============================
+.venv/lib/python3.13/site-packages/_pytest/cacheprovider.py:451
+  /home/katalyst/GitHub/DRYAD_backend/.venv/lib/python3.13/site-packages/_pytest/cacheprovider.py:451: PytestCacheWarning: could not create cache path /dev/.pytest_cache/v/cache/nodeids: [Errno 13] Permission denied: '/dev/.pytest_cache'
+    config.cache.set("cache/nodeids", sorted(self.cached_nodeids))
+
+.venv/lib/python3.13/site-packages/_pytest/cacheprovider.py:405
+  /home/katalyst/GitHub/DRYAD_backend/.venv/lib/python3.13/site-packages/_pytest/cacheprovider.py:405: PytestCacheWarning: could not create cache path /dev/.pytest_cache/v/cache/lastfailed: [Errno 13] Permission denied: '/dev/.pytest_cache'
+    config.cache.set("cache/lastfailed", self.lastfailed)
+
+.venv/lib/python3.13/site-packages/_pytest/stepwise.py:56
+  /home/katalyst/GitHub/DRYAD_backend/.venv/lib/python3.13/site-packages/_pytest/stepwise.py:56: PytestCacheWarning: could not create cache path /dev/.pytest_cache/v/cache/stepwise: [Errno 13] Permission denied: '/dev/.pytest_cache'
+    session.config.cache.set(STEPWISE_CACHE_DIR, [])
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR ../../../../dev - NameError: name 'Optional' is not defined
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+========================= 3 warnings, 1 error in 0.15s =========================
