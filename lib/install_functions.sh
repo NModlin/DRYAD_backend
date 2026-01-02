@@ -98,10 +98,10 @@ create_directories() {
 # Install backend services
 install_backend() {
     print_step "Installing DRYAD Backend..."
-    
+
     # Determine which docker-compose files to use
     local compose_files=""
-    
+
     case $DEPLOYMENT_CONFIG in
         "minimal")
             compose_files="-f archive/legacy_v9/docker/docker-compose.minimal.yml"
@@ -125,25 +125,32 @@ install_backend() {
             compose_files="-f archive/legacy_v9/docker/docker-compose.gpu.yml"
             ;;
     esac
-    
+
     # Add monitoring if selected
     if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " monitoring " ]]; then
         compose_files="$compose_files -f archive/legacy_v9/docker-compose.monitoring.yml"
     fi
-    
+
     # Add logging if selected
     if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " logging " ]]; then
         compose_files="$compose_files -f archive/legacy_v9/docker/docker-compose.logging.yml"
     fi
-    
+
+    # Create override file for external services
+    if [[ "$USE_EXTERNAL_REDIS" == "true" ]] || [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
+        print_info "Creating docker-compose override for external services..."
+        create_external_services_override
+        compose_files="$compose_files -f docker-compose.override.yml"
+    fi
+
     print_info "Using docker-compose files: $compose_files"
-    
+
     # Pull images
     print_info "Pulling Docker images (this may take a while)..."
     if ! docker compose $compose_files pull; then
         print_warning "Some images failed to pull, continuing anyway..."
     fi
-    
+
     # Start services
     print_info "Starting services..."
     if ! docker compose $compose_files up -d; then
