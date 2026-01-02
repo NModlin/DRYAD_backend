@@ -136,6 +136,70 @@ is_service_running() {
     docker compose ps "$service_name" 2>/dev/null | grep -q "Up"
 }
 
+# Check if Redis is running and accessible
+is_redis_running() {
+    # Check if redis-cli is available and can connect
+    if command_exists redis-cli; then
+        if redis-cli ping &>/dev/null; then
+            return 0
+        fi
+    fi
+
+    # Check if Redis is running in Docker
+    if command_exists docker; then
+        if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "redis"; then
+            return 0
+        fi
+    fi
+
+    # Check via network connection
+    if timeout 1 bash -c "cat < /dev/null > /dev/tcp/127.0.0.1/6379" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Check if Ollama is running and accessible
+is_ollama_running() {
+    # Check if ollama command is available
+    if command_exists ollama; then
+        if ollama list &>/dev/null; then
+            return 0
+        fi
+    fi
+
+    # Check via HTTP API
+    if command_exists curl; then
+        if curl -s --max-time 2 http://localhost:11434/api/tags &>/dev/null; then
+            return 0
+        fi
+    fi
+
+    # Check if Ollama is running as a service
+    if command_exists systemctl; then
+        if systemctl is-active --quiet ollama 2>/dev/null; then
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+# Get the name of the service running on a port
+get_service_on_port() {
+    local port=$1
+
+    if command_exists lsof; then
+        local pid=$(lsof -ti:$port 2>/dev/null | head -1)
+        if [[ -n "$pid" ]]; then
+            ps -p $pid -o comm= 2>/dev/null
+        fi
+    elif command_exists netstat; then
+        netstat -tulpn 2>/dev/null | grep ":$port " | awk '{print $7}' | cut -d'/' -f2
+    fi
+}
+
 # Get available memory in MB
 get_available_memory() {
     if [[ -f /proc/meminfo ]]; then

@@ -46,7 +46,11 @@ $(if [[ "$LLM_PROVIDER" == "anthropic" && -n "$ANTHROPIC_API_KEY" ]]; then
   echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY"
 fi)
 $(if [[ "$LLM_PROVIDER" == "ollama" ]]; then
-  echo "OLLAMA_BASE_URL=http://localhost:11434"
+  if [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
+    echo "OLLAMA_BASE_URL=http://localhost:11434"
+  else
+    echo "OLLAMA_BASE_URL=http://ollama:11434"
+  fi
   echo "OLLAMA_MODEL=llama3.2:3b"
 fi)
 
@@ -55,7 +59,11 @@ WEAVIATE_URL=http://localhost:8080
 WEAVIATE_API_KEY=
 
 # Redis
-REDIS_URL=redis://localhost:6379
+$(if [[ "$USE_EXTERNAL_REDIS" == "true" ]]; then
+  echo "REDIS_URL=redis://localhost:6379"
+else
+  echo "REDIS_URL=redis://redis:6379"
+fi)
 REDIS_DB=0
 
 # Security
@@ -108,19 +116,19 @@ EOF
 
 # Check for port conflicts
 check_port_conflicts() {
-    print_step "Checking for port conflicts..."
-    
+    print_step "Checking for port conflicts and existing services..."
+
     local ports_to_check=(
         "8000:DRYAD Backend"
         "8080:Weaviate"
         "6379:Redis"
     )
-    
+
     # Add LLM provider ports
     if [[ "$LLM_PROVIDER" == "ollama" ]]; then
         ports_to_check+=("11434:Ollama")
     fi
-    
+
     # Add frontend ports
     if [[ " ${SELECTED_FRONTENDS[@]} " =~ " dryads-console " ]]; then
         ports_to_check+=("3001:Dryads Console")
@@ -131,46 +139,89 @@ check_port_conflicts() {
     if [[ " ${SELECTED_FRONTENDS[@]} " =~ " writer-portal " ]]; then
         ports_to_check+=("3000:Writer Portal")
     fi
-    
+
     # Add monitoring ports
     if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " monitoring " ]]; then
         ports_to_check+=("9090:Prometheus" "3000:Grafana")
     fi
-    
+
     # Add logging ports
     if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " logging " ]]; then
         ports_to_check+=("9200:Elasticsearch" "5601:Kibana")
     fi
-    
+
     # Add PostgreSQL port
     if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " postgresql " ]]; then
         ports_to_check+=("5432:PostgreSQL")
     fi
-    
+
     local conflicts=()
-    
+    local existing_services=()
+
+    # Initialize flags for external services
+    export USE_EXTERNAL_REDIS=false
+    export USE_EXTERNAL_OLLAMA=false
+
     for port_info in "${ports_to_check[@]}"; do
         local port="${port_info%%:*}"
         local service="${port_info##*:}"
-        
+
         if is_port_in_use "$port"; then
-            conflicts+=("Port $port ($service) is already in use")
+            # Check if it's a service we can use
+            case "$port" in
+                6379)
+                    if is_redis_running; then
+                        existing_services+=("Redis (port 6379) - will use existing instance")
+                        export USE_EXTERNAL_REDIS=true
+                        export REDIS_HOST="localhost"
+                        print_success "✓ Detected existing Redis service"
+                    else
+                        conflicts+=("Port $port ($service) is in use by unknown process")
+                    fi
+                    ;;
+                11434)
+                    if is_ollama_running; then
+                        existing_services+=("Ollama (port 11434) - will use existing instance")
+                        export USE_EXTERNAL_OLLAMA=true
+                        export OLLAMA_HOST="http://localhost:11434"
+                        print_success "✓ Detected existing Ollama service"
+                    else
+                        conflicts+=("Port $port ($service) is in use by unknown process")
+                    fi
+                    ;;
+                *)
+                    conflicts+=("Port $port ($service) is already in use")
+                    ;;
+            esac
         fi
     done
-    
+
+    # Report existing services that will be used
+    if [[ ${#existing_services[@]} -gt 0 ]]; then
+        echo ""
+        print_info "The following existing services will be used:"
+        for service in "${existing_services[@]}"; do
+            echo "  ✓ $service"
+        done
+        echo ""
+    fi
+
+    # Report conflicts
     if [[ ${#conflicts[@]} -gt 0 ]]; then
         print_warning "Port conflicts detected:"
         for conflict in "${conflicts[@]}"; do
             echo "  - $conflict"
         done
         echo ""
-        
+
         if ! confirm "Do you want to continue anyway?" "n"; then
             print_error "Installation cancelled due to port conflicts"
             exit 1
         fi
     else
-        print_success "No port conflicts detected"
+        if [[ ${#existing_services[@]} -eq 0 ]]; then
+            print_success "No port conflicts detected"
+        fi
     fi
 }
 
