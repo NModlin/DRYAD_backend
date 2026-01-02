@@ -169,9 +169,41 @@ A sophisticated, self-contained, multi-modal AI system built with FastAPI and We
 
 ## 🛠️ Installation
 
-### **🚀 UNIFIED INSTALLATION (Recommended)**
+### **🌟 ENHANCED INTERACTIVE INSTALLER (NEW!)**
 
-DRYAD.AI now features a **single, unified installation** that automatically detects and utilizes your system's capabilities, including GPU acceleration when available.
+DRYAD.AI now features a **comprehensive, menu-driven installation system** with full component selection:
+
+```bash
+# Interactive installation with full customization
+./install_dryad_enhanced.sh
+```
+
+**Features:**
+- 🎯 7 deployment configurations (minimal to GPU-accelerated)
+- 🎨 3 optional frontend applications
+- 🔧 6 optional backend/monitoring components
+- 🤖 4 LLM provider options (Mock, OpenAI, Anthropic, Ollama)
+- 📊 Automatic resource checking and port conflict detection
+- 🏥 Comprehensive health checks and status reporting
+
+**For Remote Servers (SSH):**
+```bash
+# One-line remote installation
+curl -fsSL https://raw.githubusercontent.com/NModlin/DRYAD_backend/main/quick_install.sh | bash
+
+# Or manual clone
+git clone https://github.com/NModlin/DRYAD_backend.git
+cd DRYAD_backend
+./install_dryad_enhanced.sh
+```
+
+📖 **See [INSTALL_ON_REMOTE_SERVER.md](INSTALL_ON_REMOTE_SERVER.md) for complete remote installation guide**
+
+---
+
+### **🚀 UNIFIED INSTALLATION (Alternative)**
+
+For a simpler, non-interactive installation that automatically detects and utilizes your system's capabilities:
 
 ```bash
 # Clone and setup

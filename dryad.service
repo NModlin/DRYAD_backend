@@ -1,0 +1,28 @@
+[Unit]
+Description=DRYAD.AI Backend Service
+After=network.target redis.service docker.service ollama.service
+Wants=redis.service docker.service ollama.service
+
+[Service]
+Type=simple
+User=katalyst
+Group=katalyst
+WorkingDirectory=/home/katalyst/dryad_backend
+Environment="PATH=/home/katalyst/dryad_backend/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONPATH=/home/katalyst/dryad_backend/src"
+ExecStart=/home/katalyst/dryad_backend/.venv/bin/python -m uvicorn dryad.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dryad
+
+[Install]
+WantedBy=multi-user.target
+
