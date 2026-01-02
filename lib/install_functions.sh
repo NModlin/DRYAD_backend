@@ -88,11 +88,44 @@ check_prerequisites() {
 # Create necessary directories
 create_directories() {
     print_step "Creating necessary directories..."
-    
+
     mkdir -p data logs monitoring/grafana monitoring/prometheus
     chmod 755 data logs monitoring
-    
+
     print_success "Directories created"
+}
+
+# Create docker-compose override for external services
+create_external_services_override() {
+    cat > docker-compose.override.yml << 'EOF'
+version: '3.8'
+
+services:
+EOF
+
+    # If using external Redis, scale it to 0 (don't start it)
+    if [[ "$USE_EXTERNAL_REDIS" == "true" ]]; then
+        cat >> docker-compose.override.yml << 'EOF'
+  redis:
+    deploy:
+      replicas: 0
+    profiles:
+      - disabled
+EOF
+    fi
+
+    # If using external Ollama, scale it to 0 (don't start it)
+    if [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
+        cat >> docker-compose.override.yml << 'EOF'
+  ollama:
+    deploy:
+      replicas: 0
+    profiles:
+      - disabled
+EOF
+    fi
+
+    print_success "Created docker-compose.override.yml for external services"
 }
 
 # Install backend services
@@ -322,6 +355,27 @@ EOF
 # Setup Ollama if selected
 setup_ollama() {
     if [[ "$LLM_PROVIDER" != "ollama" ]]; then
+        return 0
+    fi
+
+    # Skip if using external Ollama
+    if [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
+        print_success "Using existing Ollama installation"
+        print_info "Checking if llama3.2:3b model is available..."
+
+        if ollama list 2>/dev/null | grep -q "llama3.2:3b"; then
+            print_success "Model llama3.2:3b is already available"
+        else
+            print_warning "Model llama3.2:3b not found"
+            if confirm "Would you like to download it now?" "y"; then
+                print_info "Downloading model (this may take several minutes)..."
+                if ollama pull llama3.2:3b; then
+                    print_success "Model downloaded successfully"
+                else
+                    print_warning "Failed to download model. You can download it later with: ollama pull llama3.2:3b"
+                fi
+            fi
+        fi
         return 0
     fi
 
