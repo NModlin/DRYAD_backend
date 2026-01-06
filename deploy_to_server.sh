@@ -2,7 +2,20 @@
 # Script to deploy DRYAD installation files to the server
 
 SERVER="katalyst@192.168.6.65"
-FILES=(
+
+echo "=========================================="
+echo "DRYAD.AI Server Deployment Script"
+echo "=========================================="
+echo ""
+
+INSTALL_DIR="dryad_installer"
+DESTINATION="$SERVER:~/$INSTALL_DIR/"
+
+echo "Deploying to: $DESTINATION"
+echo ""
+
+# Collect all files and directories to send
+ITEMS=(
     "install_dryad_enhanced.sh"
     "dryad.service"
     "SERVER_INSTALLATION_GUIDE.md"
@@ -11,31 +24,54 @@ FILES=(
     "INSTALLATION_IMPROVEMENTS.md"
     "ERROR_HANDLING_SUMMARY.md"
     "OPEN_WEBUI_GUIDE.md"
+    "pyproject.toml"
+    "Dockerfile"
+    "Dockerfile.production"
+    "lib"
+    "src"
+    "archive"
+    "config"
+    "configs"
 )
 
-echo "=========================================="
-echo "DRYAD.AI Server Deployment Script"
-echo "=========================================="
-echo ""
-echo "Copying installation files to $SERVER..."
-echo ""
+FILES_TO_SEND=()
 
-# Copy individual files
-for file in "${FILES[@]}"; do
-    if [ -f "$file" ]; then
-        echo "Copying $file..."
-        scp "$file" "$SERVER:~/"
+# Process items
+for item in "${ITEMS[@]}"; do
+    if [ -e "$item" ]; then
+        FILES_TO_SEND+=("$item")
     else
-        echo "Warning: $file not found, skipping..."
+        echo "Warning: $item not found, skipping..."
     fi
 done
 
-# Copy lib directory
-if [ -d "lib" ]; then
-    echo "Copying lib directory..."
-    scp -r "lib" "$SERVER:~/"
+# Execute single SCP command
+if [ ${#FILES_TO_SEND[@]} -gt 0 ]; then
+    # Create directory first
+    echo "Creating directory $INSTALL_DIR on server..."
+    if ! ssh "$SERVER" "mkdir -p $INSTALL_DIR"; then
+        echo "Error: Failed to create directory on server."
+        echo "Check your SSH connection and permissions."
+        exit 1
+    fi
+    
+    echo "Transferring ${#FILES_TO_SEND[@]} items in a single batch..."
+    if ! scp -r "${FILES_TO_SEND[@]}" "$DESTINATION"; then
+        echo ""
+        echo "=========================================="
+        echo "Error: File transfer failed!"
+        echo "=========================================="
+        echo "The 'scp' command returned an error code."
+        echo "This usually means:"
+        echo "1. Authentication failed (wrong password/key)"
+        echo "2. Network connection issue"
+        echo "3. Permission denied on the server"
+        echo ""
+        exit 1
+    fi
 else
-    echo "Warning: lib directory not found!"
+    echo "Error: No files to transfer!"
+    exit 1
 fi
 
 echo ""
@@ -47,11 +83,14 @@ echo "Next steps:"
 echo "1. SSH into the server:"
 echo "   ssh $SERVER"
 echo ""
-echo "2. Run the installation script:"
+echo "2. Go to the installer directory:"
+echo "   cd $INSTALL_DIR"
+echo ""
+echo "3. Run the installation script:"
 echo "   chmod +x install_dryad_enhanced.sh"
 echo "   ./install_dryad_enhanced.sh"
 echo ""
-echo "3. (Optional) Set up systemd service:"
+echo "4. (Optional) Set up systemd service:"
 echo "   sudo cp dryad.service /etc/systemd/system/"
 echo "   sudo systemctl daemon-reload"
 echo "   sudo systemctl enable dryad"
