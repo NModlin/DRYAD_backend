@@ -3,8 +3,7 @@
 
 SERVER="katalyst@192.168.6.65"
 FILES=(
-    "install_dryad_server.sh"
-    "verify_installation.sh"
+    "install_dryad_enhanced.sh"
     "dryad.service"
     "SERVER_INSTALLATION_GUIDE.md"
     "QUICK_START_SERVER.md"
@@ -21,6 +20,7 @@ echo ""
 echo "Copying installation files to $SERVER..."
 echo ""
 
+# Copy individual files
 for file in "${FILES[@]}"; do
     if [ -f "$file" ]; then
         echo "Copying $file..."
@@ -29,6 +29,14 @@ for file in "${FILES[@]}"; do
         echo "Warning: $file not found, skipping..."
     fi
 done
+
+# Copy lib directory
+if [ -d "lib" ]; then
+    echo "Copying lib directory..."
+    scp -r "lib" "$SERVER:~/"
+else
+    echo "Warning: lib directory not found!"
+fi
 
 echo ""
 echo "=========================================="
@@ -40,8 +48,8 @@ echo "1. SSH into the server:"
 echo "   ssh $SERVER"
 echo ""
 echo "2. Run the installation script:"
-echo "   chmod +x install_dryad_server.sh"
-echo "   ./install_dryad_server.sh"
+echo "   chmod +x install_dryad_enhanced.sh"
+echo "   ./install_dryad_enhanced.sh"
 echo ""
 echo "3. (Optional) Set up systemd service:"
 echo "   sudo cp dryad.service /etc/systemd/system/"
