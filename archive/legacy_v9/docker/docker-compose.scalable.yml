@@ -13,21 +13,21 @@ services:
     depends_on:
       - DRYAD.AI-backend-1
       - DRYAD.AI-backend-2
-      - DRYAD.AI-backend-3
+      - gremlins-backend
     restart: unless-stopped
     networks:
       - DRYAD.AI-network
 
   # Multiple backend instances for horizontal scaling
-  DRYAD.AI-backend-1:
+  gremlins-backend:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=postgresql://postgres:password@postgres:5432/DRYAD.AI
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://user:password@postgres:5432/gremlins
       - REDIS_URL=redis://redis:6379
       - WEAVIATE_URL=http://weaviate:8080
-      - OLLAMA_BASE_URL=http://ollama:11434
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - LOG_LEVEL=INFO
@@ -52,7 +52,7 @@ services:
 
   DRYAD.AI-backend-2:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/DRYAD.AI
@@ -70,8 +70,8 @@ services:
       - weaviate
       - ollama
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     restart: unless-stopped
     deploy:
       resources:
@@ -83,7 +83,7 @@ services:
 
   DRYAD.AI-backend-3:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/DRYAD.AI
@@ -101,8 +101,8 @@ services:
       - weaviate
       - ollama
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     restart: unless-stopped
     deploy:
       resources:
@@ -115,7 +115,7 @@ services:
   # Dedicated worker instances for background tasks
   DRYAD.AI-worker-1:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.worker
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/DRYAD.AI
@@ -130,8 +130,8 @@ services:
       - redis
       - weaviate
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     restart: unless-stopped
     deploy:
       resources:
@@ -143,7 +143,7 @@ services:
 
   DRYAD.AI-worker-2:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.worker
     environment:
       - DATABASE_URL=postgresql://postgres:password@postgres:5432/DRYAD.AI
@@ -158,8 +158,8 @@ services:
       - redis
       - weaviate
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     restart: unless-stopped
     deploy:
       resources:

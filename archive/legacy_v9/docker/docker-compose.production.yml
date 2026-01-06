@@ -3,7 +3,7 @@
 services:
   DRYAD.AI:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.production
     container_name: DRYAD.AI-production
     restart: unless-stopped
@@ -19,10 +19,10 @@ services:
       - MAX_REQUESTS=1000
     volumes:
       # Persistent model storage
-      - ./models:/app/models
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./cache:/app/cache
+      - ../../../models:/app/models
+      - ../../../logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../cache:/app/cache
     deploy:
       resources:
         limits:

@@ -7,7 +7,7 @@ services:
   # DRYAD.AI Backend Application (Development)
   gremlins-api:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
       args:
         INSTALL_TIER: development
@@ -41,9 +41,9 @@ services:
       - LOG_LEVEL=DEBUG
       - PYTHONPATH=/app
     volumes:
-      - .:/app  # Mount source code for hot reload
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../:/app  # Mount source code for hot reload
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     depends_on:
       weaviate:
         condition: service_healthy
@@ -137,7 +137,7 @@ services:
   # Jupyter Notebook for Development
   jupyter:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
       args:
         INSTALL_TIER: development
@@ -147,8 +147,8 @@ services:
     environment:
       - JUPYTER_ENABLE_LAB=yes
     volumes:
-      - .:/app
-      - ./notebooks:/app/notebooks
+      - ../../../:/app
+      - ../../../notebooks:/app/notebooks
     networks:
       - gremlins-dev
     restart: unless-stopped

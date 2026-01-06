@@ -2,7 +2,7 @@ services:
   # DRYAD.AI Backend
   gremlins-backend:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
@@ -15,8 +15,8 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       - LOG_LEVEL=INFO
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     depends_on:
       - weaviate
     restart: unless-stopped
@@ -81,7 +81,7 @@ services:
   # Celery worker for background tasks
   celery-worker:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
     command: celery -A app.core.celery_app worker --loglevel=info
     environment:
@@ -91,8 +91,8 @@ services:
       - WEAVIATE_URL=http://weaviate:8080
       - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     depends_on:
       - weaviate
     restart: unless-stopped

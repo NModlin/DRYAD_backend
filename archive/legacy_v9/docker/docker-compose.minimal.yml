@@ -5,7 +5,7 @@ services:
   # DRYAD.AI Backend Application (Minimal)
   gremlins-api:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile
       args:
         INSTALL_TIER: minimal
@@ -29,8 +29,8 @@ services:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     networks:
       - gremlins-minimal
     restart: unless-stopped

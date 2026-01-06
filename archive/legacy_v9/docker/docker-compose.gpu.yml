@@ -7,7 +7,7 @@ services:
   # DRYAD.AI Backend Application with GPU Support
   gremlins-api:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.gpu
       target: production
     container_name: gremlins-api-gpu
@@ -44,9 +44,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./models:/app/models
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
+      - ../../../models:/app/models
     depends_on:
       weaviate:
         condition: service_healthy
@@ -109,7 +109,7 @@ services:
   # Celery Worker with GPU Access
   celery-worker:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.gpu
       target: production
     container_name: celery-worker-gpu
@@ -131,9 +131,9 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./models:/app/models
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
+      - ../../../models:/app/models
     depends_on:
       redis:
         condition: service_healthy
@@ -149,7 +149,7 @@ services:
   # Celery Beat Scheduler
   celery-beat:
     build:
-      context: .
+      context: ../../../
       dockerfile: Dockerfile.gpu
       target: production
     container_name: celery-beat
@@ -162,8 +162,8 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
     depends_on:
       redis:
         condition: service_healthy
