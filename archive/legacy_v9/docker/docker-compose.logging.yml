@@ -75,8 +75,8 @@ services:
     container_name: DRYAD.AI-fluentd
     restart: unless-stopped
     volumes:
-      - ./logging/fluentd.conf:/fluentd/etc/fluent.conf:ro
-      - ./logs:/app/logs:ro
+      - ../infrastructure/logging/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - ../../../logs:/app/logs:ro
       - fluentd-buffer:/var/log/fluentd/buffer
     ports:
       - "24224:24224"
@@ -103,8 +103,8 @@ services:
     container_name: DRYAD.AI-logstash
     restart: unless-stopped
     volumes:
-      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
-      - ./logs:/app/logs:ro
+      - ../infrastructure/logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ../../../logs:/app/logs:ro
     ports:
       - "5044:5044"
       - "9600:9600"
@@ -129,8 +129,8 @@ services:
     restart: unless-stopped
     user: root
     volumes:
-      - ./logging/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ./logs:/app/logs:ro
+      - ../infrastructure/logging/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ../../../logs:/app/logs:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - filebeat-data:/usr/share/filebeat/data

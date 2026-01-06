@@ -116,7 +116,7 @@ install_backend() {
             compose_files="-f archive/legacy_v9/docker/docker-compose.full.yml"
             ;;
         "production")
-            compose_files="-f archive/legacy_v9/docker-compose.production.yml"
+            compose_files="-f archive/legacy_v9/docker/docker-compose.production.yml"
             ;;
         "scalable")
             compose_files="-f archive/legacy_v9/docker/docker-compose.scalable.yml"
