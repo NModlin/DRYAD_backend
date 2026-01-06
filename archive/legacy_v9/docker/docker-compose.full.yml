@@ -9,13 +9,13 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=sqlite:///./data/gremlins.db
-      - REDIS_URL=redis://redis:6379
-      - WEAVIATE_URL=http://weaviate:8080
-      - OLLAMA_BASE_URL=http://ollama:11434
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required - generate with: python -c 'import secrets; print(secrets.token_urlsafe(48))'}
-      - LOG_LEVEL=INFO
+      ENVIRONMENT: development
+      DATABASE_URL: sqlite:///./data/gremlins.db
+      REDIS_URL: redis://redis:6379
+      WEAVIATE_URL: http://weaviate:8080
+      OLLAMA_BASE_URL: http://ollama:11434
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY is required - generate with: python -c 'import secrets; print(secrets.token_urlsafe(48))'}
+      LOG_LEVEL: INFO
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
@@ -89,11 +89,11 @@ services:
       dockerfile: Dockerfile
     command: celery -A app.core.celery_app worker --loglevel=info
     environment:
-      - ENVIRONMENT=development
-      - DATABASE_URL=sqlite:///./data/gremlins.db
-      - REDIS_URL=redis://redis:6379
-      - WEAVIATE_URL=http://weaviate:8080
-      - OLLAMA_BASE_URL=http://ollama:11434
+      ENVIRONMENT: development
+      DATABASE_URL: sqlite:///./data/gremlins.db
+      REDIS_URL: redis://redis:6379
+      WEAVIATE_URL: http://weaviate:8080
+      OLLAMA_BASE_URL: http://ollama:11434
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
