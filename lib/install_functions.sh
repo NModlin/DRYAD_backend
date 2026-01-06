@@ -95,39 +95,6 @@ create_directories() {
     print_success "Directories created"
 }
 
-# Create docker-compose override for external services
-create_external_services_override() {
-    cat > docker-compose.override.yml << 'EOF'
-version: '3.8'
-
-services:
-EOF
-
-    # If using external Redis, scale it to 0 (don't start it)
-    if [[ "$USE_EXTERNAL_REDIS" == "true" ]]; then
-        cat >> docker-compose.override.yml << 'EOF'
-  redis:
-    deploy:
-      replicas: 0
-    profiles:
-      - disabled
-EOF
-    fi
-
-    # If using external Ollama, scale it to 0 (don't start it)
-    if [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
-        cat >> docker-compose.override.yml << 'EOF'
-  ollama:
-    deploy:
-      replicas: 0
-    profiles:
-      - disabled
-EOF
-    fi
-
-    print_success "Created docker-compose.override.yml for external services"
-}
-
 # Install backend services
 install_backend() {
     print_step "Installing DRYAD Backend..."
@@ -172,7 +139,37 @@ install_backend() {
     # Create override file for external services
     if [[ "$USE_EXTERNAL_REDIS" == "true" ]] || [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
         print_info "Creating docker-compose override for external services..."
-        create_external_services_override
+
+        # Create the override file
+        cat > docker-compose.override.yml << 'EOF'
+version: '3.8'
+
+services:
+EOF
+
+        # If using external Redis, disable it in Docker
+        if [[ "$USE_EXTERNAL_REDIS" == "true" ]]; then
+            cat >> docker-compose.override.yml << 'EOF'
+  redis:
+    deploy:
+      replicas: 0
+    profiles:
+      - disabled
+EOF
+        fi
+
+        # If using external Ollama, disable it in Docker
+        if [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
+            cat >> docker-compose.override.yml << 'EOF'
+  ollama:
+    deploy:
+      replicas: 0
+    profiles:
+      - disabled
+EOF
+        fi
+
+        print_success "Created docker-compose.override.yml for external services"
         compose_files="$compose_files -f docker-compose.override.yml"
     fi
 
