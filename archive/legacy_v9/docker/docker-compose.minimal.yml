@@ -1,8 +1,6 @@
 # DRYAD.AI Backend - Minimal Docker Compose
 # For development and lightweight deployments
 
-version: '3.8'
-
 services:
   # DRYAD.AI Backend Application (Minimal)
   gremlins-api:
@@ -23,7 +21,7 @@ services:
       - OLLAMA_BASE_URL=http://ollama:11434
       
       # Security
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required - generate with: python -c 'import secrets; print(secrets.token_urlsafe(48))'}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       

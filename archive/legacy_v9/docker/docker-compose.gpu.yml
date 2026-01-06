@@ -1,7 +1,7 @@
 # DRYAD.AI Backend - GPU-Enabled Docker Compose Configuration
 # Requires NVIDIA Docker runtime for GPU acceleration
 
-version: '3.8'
+
 
 services:
   # DRYAD.AI Backend Application with GPU Support

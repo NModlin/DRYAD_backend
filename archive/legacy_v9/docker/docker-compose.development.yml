@@ -1,7 +1,7 @@
 # DRYAD.AI Backend - Development Docker Compose
 # For development with hot reload and debugging tools
 
-version: '3.8'
+
 
 services:
   # DRYAD.AI Backend Application (Development)
