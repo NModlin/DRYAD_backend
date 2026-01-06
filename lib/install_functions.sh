@@ -177,13 +177,13 @@ EOF
 
     # Pull images
     print_info "Pulling Docker images (this may take a while)..."
-    if ! docker compose $compose_files pull; then
+    if ! docker compose --env-file .env $compose_files pull; then
         print_warning "Some images failed to pull, continuing anyway..."
     fi
 
     # Start services
     print_info "Starting services..."
-    if ! docker compose $compose_files up -d; then
+    if ! docker compose --env-file .env $compose_files up -d; then
         print_error "Failed to start services"
         return 1
     fi

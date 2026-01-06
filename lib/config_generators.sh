@@ -14,6 +14,14 @@ generate_backend_env() {
     # Generate secure JWT secret
     local jwt_secret=$(generate_secret)
     
+    # Verify secret generation
+    if [[ -z "$jwt_secret" ]]; then
+        print_warning "Secret generation failed, using fallback"
+        jwt_secret="fallback_secret_$(date +%s)_$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
+    else
+        print_info "Generated secure keys successfully"
+    fi
+    
     # Create .env file
     cat > .env << EOF
 # DRYAD Backend Configuration
