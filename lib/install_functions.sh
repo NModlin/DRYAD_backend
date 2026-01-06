@@ -142,8 +142,6 @@ install_backend() {
 
         # Create the override file
         cat > docker-compose.override.yml << 'EOF'
-version: '3.8'
-
 services:
 EOF
 
