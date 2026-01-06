@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # Prometheus - Metrics Collection
@@ -113,8 +113,6 @@ services:
     networks:
       - dryad-monitoring
       - dryad-backend
-    depends_on:
-      - postgres
 
   # Redis Exporter - Cache Metrics
   redis-exporter:
@@ -129,8 +127,6 @@ services:
     networks:
       - dryad-monitoring
       - dryad-backend
-    depends_on:
-      - redis
 
   # Nginx Exporter - Proxy Metrics
   nginx-exporter:
@@ -144,8 +140,6 @@ services:
     networks:
       - dryad-monitoring
       - dryad-backend
-    depends_on:
-      - nginx
 
 networks:
   dryad-monitoring:
