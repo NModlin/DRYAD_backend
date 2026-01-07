@@ -38,6 +38,8 @@ env/
 # Documentation
 *.md
 !README.md
+!requirements.txt
+!requirements-dev.txt
 docs/
 archive/
 
