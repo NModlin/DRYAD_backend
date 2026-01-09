@@ -81,7 +81,7 @@ rich>=13.0.0,<14.0.0
 httpx>=0.25.0,<1.0.0
 
 # Local LLM Support with GPU Auto-Detection
-llama-cpp-python>=0.2.0,<1.0.0  # Primary local LLM with GPU support
+# llama-cpp-python>=0.2.0,<1.0.0  # Primary local LLM with GPU support (Handled in Dockerfile)
 langchain-ollama>=0.1.0,<1.0.0
 langchain-huggingface>=0.0.3,<1.0.0
 transformers>=4.35.0,<5.0.0

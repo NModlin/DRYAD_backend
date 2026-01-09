@@ -40,7 +40,7 @@ API_VERSION=1.0.0
 
 # Database
 $(if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " postgresql " ]]; then
-  echo "DATABASE_URL=postgresql://dryad:dryad@localhost:5432/dryad"
+  echo "DATABASE_URL=postgresql://dryad:dryad@dryad-postgres:5432/dryad"
 else
   echo "DATABASE_URL=sqlite:///./dryad.db"
 fi)
@@ -63,7 +63,7 @@ $(if [[ "$LLM_PROVIDER" == "ollama" ]]; then
 fi)
 
 # Vector Database
-WEAVIATE_URL=http://localhost:8080
+WEAVIATE_URL=http://weaviate:8080
 WEAVIATE_API_KEY=
 
 # Redis

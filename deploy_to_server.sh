@@ -17,6 +17,7 @@ echo ""
 # Collect all files and directories to send
 ITEMS=(
     "install_dryad_enhanced.sh"
+    "force_move_containerd.sh"
     "dryad.service"
     "SERVER_INSTALLATION_GUIDE.md"
     "QUICK_START_SERVER.md"
@@ -25,6 +26,9 @@ ITEMS=(
     "ERROR_HANDLING_SUMMARY.md"
     "OPEN_WEBUI_GUIDE.md"
     "pyproject.toml"
+    "requirements.txt"
+    "requirements-dev.txt"
+    ".dockerignore"
     "Dockerfile"
     "Dockerfile.production"
     "lib"

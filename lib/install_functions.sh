@@ -136,6 +136,11 @@ install_backend() {
         compose_files="$compose_files -f archive/legacy_v9/docker/docker-compose.logging.yml"
     fi
 
+    # Add PostgreSQL if selected
+    if [[ " ${OPTIONAL_COMPONENTS[@]} " =~ " postgresql " ]]; then
+        compose_files="$compose_files -f archive/legacy_v9/docker/docker-compose.postgres.yml"
+    fi
+
     # Create override file for external services
     if [[ "$USE_EXTERNAL_REDIS" == "true" ]] || [[ "$USE_EXTERNAL_OLLAMA" == "true" ]]; then
         print_info "Creating docker-compose override for external services..."
@@ -179,9 +184,27 @@ EOF
         print_warning "Some images failed to pull, continuing anyway..."
     fi
 
+    # Create external network if it doesn't exist
+    print_info "Checking for dryad-backend network..."
+    if ! docker network ls | grep -q "dryad-backend"; then
+        print_info "Creating dryad-backend network..."
+        docker network create dryad-backend
+    else
+        print_success "dryad-backend network already exists"
+    fi
+
+    # Create legacy gremlins-network if it doesn't exist (required by logging stack)
+    print_info "Checking for gremlins-network..."
+    if ! docker network ls | grep -q "gremlins-network"; then
+        print_info "Creating gremlins-network..."
+        docker network create gremlins-network
+    else
+        print_success "gremlins-network already exists"
+    fi
+
     # Start services
     print_info "Starting services..."
-    if ! docker compose --env-file .env $compose_files up -d; then
+    if ! docker compose --env-file .env $compose_files up -d --build; then
         print_error "Failed to start services"
         return 1
     fi

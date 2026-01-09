@@ -36,6 +36,7 @@ app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledg
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 
 @app.get("/health")
+@app.get("/api/v1/health/status")
 async def health_check():
     """Health check endpoint to verify service status."""
     return {
