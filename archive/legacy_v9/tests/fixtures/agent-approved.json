@@ -1,0 +1,13 @@
+{
+  "agent_id": "550e8400-e29b-41d4-a716-446655440000",
+  "submission_id": "sub-uuid-here",
+  "approved_by": "admin-user-id",
+  "approved_at": "2025-10-08T12:00:00Z",
+  "agent_configuration": {
+    "name": "ad_automation_agent",
+    "display_name": "Active Directory Automation Agent",
+    "category": "automation",
+    "version": "1.0.0"
+  }
+}
+

@@ -1,0 +1,354 @@
+{
+  "project": {
+    "name": "DRYAD.AI Backend",
+    "version": "9.0.0",
+    "description": "Self-contained multi-modal AI system with local LLM and vector database",
+    "architecture": "Microservices with local AI processing",
+    "deployment_model": "Self-contained, no external API dependencies"
+  },
+  "core_framework": {
+    "web_framework": {
+      "name": "FastAPI",
+      "version": ">=0.100.0,<1.0.0",
+      "purpose": "REST API framework with automatic OpenAPI documentation",
+      "features": ["REST API", "WebSocket support", "Automatic validation", "OpenAPI/Swagger docs"],
+      "endpoints": "100+ conditional endpoints (varies based on optional modules)"
+    },
+    "server": {
+      "name": "Uvicorn",
+      "version": ">=0.20.0,<1.0.0",
+      "purpose": "ASGI server for FastAPI applications",
+      "features": ["Hot reload", "Multi-worker support", "WebSocket support"]
+    },
+    "python_version": "3.11+",
+    "async_support": true
+  },
+  "ai_stack": {
+    "orchestration": {
+      "langchain": {
+        "version": ">=0.1.0,<1.0.0",
+        "purpose": "AI application framework and LLM abstraction",
+        "components": ["LLM chains", "Prompt templates", "Memory management"]
+      },
+      "langgraph": {
+        "version": ">=0.0.40,<1.0.0",
+        "purpose": "Graph-based AI workflow orchestration",
+        "features": ["State management", "Conditional flows", "Agent coordination"]
+      },
+      "built_in_multi_agent": {
+        "version": "built-in",
+        "purpose": "Self-contained multi-agent collaboration system",
+        "features": ["Agent roles", "Task delegation", "Collaborative workflows", "No external dependencies", "Performance optimized"]
+      }
+    },
+    "llm_providers": {
+      "primary": {
+        "name": "LlamaCpp",
+        "purpose": "Primary local LLM implementation for self-contained AI",
+        "dependency": "llama-cpp-python>=0.2.0,<1.0.0",
+        "models": ["tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"],
+        "integration": "Built-in with automatic model downloading"
+      },
+      "alternative": {
+        "name": "Ollama",
+        "purpose": "Alternative local LLM server",
+        "url": "http://localhost:11434",
+        "models": ["llama3.2:3b", "llama3.2:1b", "tinyllama"],
+        "integration": "langchain-ollama>=0.3.8"
+      },
+      "fallback": {
+        "name": "Mock",
+        "purpose": "Development and testing fallback",
+        "features": ["Direct model loading", "GGUF format", "CPU/GPU inference"]
+      },
+      "fallback": {
+        "name": "Mock LLM",
+        "purpose": "Testing and development fallback",
+        "behavior": "Explicit failure, no external API calls"
+      }
+    },
+    "embeddings": {
+      "text": {
+        "name": "Sentence Transformers",
+        "version": ">=2.2.0,<3.0.0",
+        "model": "all-MiniLM-L6-v2",
+        "purpose": "Text embeddings for semantic search"
+      },
+      "multimodal": {
+        "name": "CLIP",
+        "version": ">=1.0.0,<2.0.0",
+        "purpose": "Cross-modal embeddings for image-text search",
+        "optional": true
+      }
+    }
+  },
+  "databases": {
+    "primary": {
+      "name": "SQLite",
+      "purpose": "Primary database for structured data with multi-client support",
+      "url": "sqlite:///./data/DRYAD.AI.db",
+      "orm": "SQLAlchemy>=2.0.0,<3.0.0",
+      "migrations": "Alembic>=1.13.0,<2.0.0",
+      "async_driver": "aiosqlite>=0.19.0,<1.0.0",
+      "data_types": ["Users", "Documents", "Chat History", "Metadata", "Organizations", "Client Applications", "Shared Knowledge"],
+      "multi_tenant": {
+        "isolation_levels": ["strict", "shared", "collaborative"],
+        "tenant_scoping": "client_app_id + tenant_id",
+        "cross_client_learning": true
+      }
+    },
+    "vector": {
+      "name": "Weaviate",
+      "version": "1.26.1",
+      "purpose": "Vector database for semantic search and RAG with multi-tenancy",
+      "url": "http://localhost:8080",
+      "client": "weaviate-client>=4.4.0,<5.0.0",
+      "integration": "langchain-weaviate>=0.0.1,<1.0.0",
+      "features": ["Vector search", "Hybrid search", "Multi-modal support", "Multi-tenant isolation", "Cross-client knowledge sharing"],
+      "multi_tenant": {
+        "tenant_contexts": ["user_clientid_tenantid", "org_clientid", "shared_knowledge"],
+        "isolation_method": "metadata_filtering",
+        "differential_privacy": true
+      }
+    },
+    "cache": {
+      "name": "Redis",
+      "purpose": "Caching and task queue message broker",
+      "url": "redis://localhost:6379",
+      "client": "redis>=5.0.0,<6.0.0",
+      "features": ["Session storage", "Task queue", "Real-time data"]
+    }
+  },
+  "task_processing": {
+    "queue": {
+      "name": "Celery",
+      "version": ">=5.3.0,<6.0.0",
+      "purpose": "Distributed task queue for background processing",
+      "broker": "Redis",
+      "features": ["Async tasks", "Scheduled jobs", "Result backend"]
+    },
+    "dependencies": {
+      "kombu": ">=5.3.0,<6.0.0",
+      "billiard": ">=4.2.0,<5.0.0"
+    }
+  },
+  "api_interfaces": {
+    "rest": {
+      "framework": "FastAPI",
+      "documentation": "OpenAPI 3.0 with Swagger UI",
+      "endpoints": "100+ conditional endpoints + MCP endpoints",
+      "features": ["Automatic validation", "Type hints", "Async support", "Multi-client authentication", "Tenant isolation"]
+    },
+    "mcp": {
+      "protocol": "Model Context Protocol",
+      "version": "2025-06-18",
+      "purpose": "Standardized client integration interface",
+      "endpoints": ["/mcp", "/mcp/capabilities", "/mcp/notifications", "/mcp/health"],
+      "features": ["Resource access", "Tool execution", "Context sharing", "Version negotiation", "Domain-specific configurations"],
+      "resources": ["documents", "conversations", "knowledge", "analytics"],
+      "tools": [
+        "semantic_search",
+        "ai_chat",
+        "add_document",
+        "get_shared_insights",
+        "extract_structured_data",
+        "analyze_patterns",
+        "classify_content",
+        "calculate_similarity",
+        "process_geographic_data"
+      ],
+      "domain_contexts": ["government_contracting", "legal_contracts", "ecommerce", "research_academic"],
+      "configurable_features": [
+        "Schema-based data extraction",
+        "Multi-factor similarity analysis",
+        "Configurable classification taxonomies",
+        "Pattern analysis with domain context",
+        "Geographic data processing"
+      ]
+    },
+    "graphql": {
+      "framework": "Strawberry GraphQL",
+      "version": ">=0.215.0,<1.0.0",
+      "purpose": "Flexible query interface",
+      "features": ["Type-safe queries", "Subscriptions", "FastAPI integration"]
+    },
+    "websocket": {
+      "framework": "FastAPI WebSockets",
+      "version": ">=12.0,<13.0",
+      "purpose": "Real-time communication",
+      "features": ["Live updates", "Chat streaming", "Event broadcasting"]
+    }
+  },
+  "authentication": {
+    "method": "OAuth2 + JWT + API Keys",
+    "multi_client": {
+      "client_authentication": "API key + OAuth2 hybrid",
+      "tenant_isolation": "Request-level tenant context",
+      "permission_matrix": "Role-based + client-scoped permissions"
+    },
+    "providers": ["Google OAuth2"],
+    "libraries": {
+      "jwt": "PyJWT>=2.8.0,<3.0.0",
+      "crypto": "cryptography>=41.0.0,<42.0.0",
+      "http_client": "httpx>=0.25.0,<1.0.0"
+    },
+    "features": ["Token-based auth", "Role-based access", "Session management"]
+  },
+  "document_processing": {
+    "pdf": {
+      "name": "PyPDF",
+      "version": ">=4.0.0,<5.0.0",
+      "purpose": "PDF text extraction and processing"
+    },
+    "multipart": {
+      "name": "python-multipart",
+      "version": ">=0.0.6,<1.0.0",
+      "purpose": "File upload handling"
+    }
+  },
+  "search_tools": {
+    "web_search": {
+      "name": "DuckDuckGo Search",
+      "version": ">=6.0.0,<7.0.0",
+      "purpose": "Web search capabilities (explicit request only)",
+      "isolation": "Requires explicit_request=True parameter"
+    }
+  },
+  "multimodal_processing": {
+    "audio": {
+      "whisper": "openai-whisper>=20231117",
+      "pydub": ">=0.25.1,<1.0.0",
+      "tts": "pyttsx3>=2.90,<3.0.0",
+      "analysis": "librosa>=0.10.0,<1.0.0"
+    },
+    "video": {
+      "ffmpeg": "ffmpeg-python>=0.2.0,<1.0.0",
+      "opencv": "opencv-python>=4.8.0,<5.0.0"
+    },
+    "image": {
+      "pillow": "Pillow>=10.0.0,<11.0.0",
+      "torch": "torch>=2.0.0,<3.0.0",
+      "torchvision": "torchvision>=0.15.0,<1.0.0"
+    },
+    "ml_acceleration": {
+      "transformers": "transformers>=4.35.0,<5.0.0",
+      "accelerate": "accelerate>=0.24.0,<1.0.0"
+    }
+  },
+  "utilities": {
+    "environment": "python-dotenv>=1.0.0,<2.0.0",
+    "validation": "pydantic>=2.0.0,<3.0.0",
+    "cli": "click>=8.1.0,<9.0.0",
+    "rich_output": "rich>=13.0.0,<14.0.0",
+    "templates": "jinja2>=3.1.0,<4.0.0",
+    "progress": "tqdm>=4.65.0,<5.0.0",
+    "http_requests": "requests>=2.31.0,<3.0.0"
+  },
+  "development_tools": {
+    "testing": "pytest with custom fixtures",
+    "linting": "Built-in Python linting",
+    "type_checking": "Pydantic for runtime validation",
+    "documentation": "Automatic OpenAPI generation"
+  },
+  "deployment": {
+    "containerization": {
+      "docker": "Multi-stage Dockerfile with tier-based builds",
+      "compose": "Docker Compose for service orchestration",
+      "tiers": ["minimal", "standard", "full", "development"]
+    },
+    "process_management": "Uvicorn with configurable workers",
+    "monitoring": "Built-in health checks and performance metrics",
+    "logging": "Structured logging with configurable levels"
+  },
+  "installation_tiers": {
+    "minimal": {
+      "purpose": "Basic API functionality, development, CI/CD",
+      "requirements_file": "requirements-minimal.txt",
+      "features": ["REST API", "SQLite", "OAuth2", "Basic chat", "Local LLM"],
+      "resource_requirements": "4GB RAM, 2 CPU cores, 5GB storage"
+    },
+    "standard": {
+      "purpose": "Production AI applications (recommended)",
+      "requirements_file": "requirements-standard.txt",
+      "features": ["All minimal", "Vector search", "Multi-agent", "GraphQL", "Task queue"],
+      "resource_requirements": "8GB RAM, 4 CPU cores, 15GB storage"
+    },
+    "full": {
+      "purpose": "Complete AI platform with multimedia",
+      "requirements_file": "requirements-full.txt",
+      "features": ["All standard", "Audio/Video/Image processing", "ML models", "Computer vision"],
+      "resource_requirements": "16GB RAM, 8 CPU cores, 50GB storage"
+    }
+  },
+  "self_contained_features": {
+    "local_processing": "All AI inference happens locally via LlamaCpp (primary) or Ollama",
+    "no_external_apis": "No data sent to external AI services",
+    "explicit_failures": "System fails clearly when local LLM unavailable",
+    "offline_capable": "Works without internet connection",
+    "privacy_first": "All conversations and documents stay local",
+    "search_isolation": "Web search requires explicit user confirmation"
+  },
+  "performance_characteristics": {
+    "response_times": {
+      "llama3.2:3b": "2-5 seconds (high quality)",
+      "tinyllama": "<1 second (fast responses)",
+      "llama3.2:1b": "1-2 seconds (balanced)"
+    },
+    "memory_usage": {
+      "llama3.2:3b": "3-4GB RAM",
+      "tinyllama": "1GB RAM",
+      "base_system": "1-2GB RAM"
+    },
+    "storage": {
+      "models": "1-4GB per model",
+      "database": "Grows with usage",
+      "logs": "Configurable rotation"
+    }
+  },
+  "ai_assistant_notes": {
+    "architecture_pattern": "Hybrid database (SQLite + Weaviate) with local LLM processing",
+    "key_directories": {
+      "app/": "Main application code",
+      "app/api/": "API endpoints and schemas",
+      "app/core/": "Core functionality (LLM, vector store, tools)",
+      "app/database/": "Database models and configuration",
+      "app/services/": "Business logic layer",
+      "alembic/": "Database migrations",
+      "data/": "SQLite database and file storage",
+      "scripts/": "Utility and setup scripts"
+    },
+    "configuration_files": {
+      ".env": "Environment variables (copy from .env.example)",
+      "requirements-*.txt": "Tiered dependency management",
+      "alembic.ini": "Database migration configuration",
+      "docker-compose.yml": "Service orchestration"
+    },
+    "common_patterns": {
+      "dependency_injection": "FastAPI dependency system",
+      "async_operations": "Async/await throughout",
+      "error_handling": "Structured exceptions with proper HTTP codes",
+      "validation": "Pydantic models for request/response validation",
+      "logging": "Structured logging with correlation IDs"
+    }
+  },
+  "cross_client_learning": {
+    "privacy_framework": {
+      "anonymization": "Content anonymization with PII removal",
+      "differential_privacy": "Laplace noise addition to embeddings",
+      "content_hashing": "SHA256 for deduplication",
+      "isolation_levels": ["strict", "shared", "collaborative"]
+    },
+    "knowledge_aggregation": {
+      "shared_knowledge_store": "SQLite table with privacy controls",
+      "embedding_privacy": "Differential privacy noise on vectors",
+      "contribution_tracking": "Client contribution attribution",
+      "access_control": "Exclude own contributions from results"
+    },
+    "federated_learning": {
+      "pattern_aggregation": "Cross-client insight aggregation",
+      "privacy_preservation": "No raw data sharing",
+      "learning_analytics": "Usage pattern analysis",
+      "confidence_scoring": "Quality-based insight ranking"
+    }
+  }
+}

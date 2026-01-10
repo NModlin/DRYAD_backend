@@ -49,7 +49,7 @@ for item in "${ITEMS[@]}"; do
     fi
 done
 
-# Execute deployment using rsync for better performance and exclusions
+# Execute single SCP command
 if [ ${#FILES_TO_SEND[@]} -gt 0 ]; then
     # Create directory first
     echo "Creating directory $INSTALL_DIR on server..."
@@ -59,34 +59,18 @@ if [ ${#FILES_TO_SEND[@]} -gt 0 ]; then
         exit 1
     fi
     
-    echo "Syncing code to server..."
-    # Use rsync instead of scp
-    # -a: archive mode (preserves permissions, timestamps, etc.)
-    # -v: verbose
-    # -z: compress
-    # --delete: delete extraneous files from dest dirs (optional, maybe unsafe so omitted for now)
-    # --exclude: skip heavy/generated folders
-    
-    if ! rsync -avz \
-        --exclude 'node_modules' \
-        --exclude '.git' \
-        --exclude '__pycache__' \
-        --exclude '.pytest_cache' \
-        --exclude '.venv' \
-        --exclude 'venv' \
-        --exclude '*.pyc' \
-        --exclude '.DS_Store' \
-        "${FILES_TO_SEND[@]}" \
-        "$DESTINATION"; then
-        
+    echo "Transferring ${#FILES_TO_SEND[@]} items in a single batch..."
+    if ! scp -r "${FILES_TO_SEND[@]}" "$DESTINATION"; then
         echo ""
         echo "=========================================="
-        echo "Error: Rsync transfer failed!"
+        echo "Error: File transfer failed!"
         echo "=========================================="
-        echo "Possible reasons:"
-        echo "1. Authentication failed"
-        echo "2. rsync not installed on remote server"
-        echo "3. Network issue"
+        echo "The 'scp' command returned an error code."
+        echo "This usually means:"
+        echo "1. Authentication failed (wrong password/key)"
+        echo "2. Network connection issue"
+        echo "3. Permission denied on the server"
+        echo ""
         exit 1
     fi
 else

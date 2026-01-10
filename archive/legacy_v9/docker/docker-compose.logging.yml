@@ -1,0 +1,168 @@
+# ============================================================================
+# DRYAD.AI Logging Stack - ELK + Fluentd
+# Elasticsearch, Logstash, Kibana, and Fluentd for log aggregation
+# ============================================================================
+
+
+
+services:
+  # ==========================================================================
+  # Elasticsearch - Log Storage and Search
+  # ==========================================================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: DRYAD.AI-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - logging-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # ==========================================================================
+  # Kibana - Log Visualization
+  # ==========================================================================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: DRYAD.AI-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=changeme
+    ports:
+      - "5601:5601"
+    networks:
+      - logging-network
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # ==========================================================================
+  # Fluentd - Log Aggregation
+  # ==========================================================================
+  fluentd:
+    image: fluent/fluentd:v1.16-1
+    container_name: DRYAD.AI-fluentd
+    restart: unless-stopped
+    volumes:
+      - ../infrastructure/logging/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - ../../../logs:/app/logs:ro
+      - fluentd-buffer:/var/log/fluentd/buffer
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - logging-network
+      - gremlins-network
+    depends_on:
+      - elasticsearch
+    environment:
+      - FLUENTD_CONF=fluent.conf
+      - ENVIRONMENT=production
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================================
+  # Logstash - Log Processing (Optional)
+  # ==========================================================================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: DRYAD.AI-logstash
+    restart: unless-stopped
+    volumes:
+      - ../infrastructure/logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - ../../../logs:/app/logs:ro
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    networks:
+      - logging-network
+    depends_on:
+      - elasticsearch
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # ==========================================================================
+  # Filebeat - Log Shipper (Alternative to Fluentd)
+  # ==========================================================================
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: DRYAD.AI-filebeat
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ../infrastructure/logging/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ../../../logs:/app/logs:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - filebeat-data:/usr/share/filebeat/data
+    networks:
+      - logging-network
+      - gremlins-network
+    depends_on:
+      - elasticsearch
+    command: filebeat -e -strict.perms=false
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  logging-network:
+    driver: bridge
+  gremlins-network:
+    external: true
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  elasticsearch-data:
+    driver: local
+  fluentd-buffer:
+    driver: local
+  filebeat-data:
+    driver: local
+

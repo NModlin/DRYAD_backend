@@ -1,0 +1,45 @@
+
+    async def register_expert_agent(self, expert_data: Dict[str, Any]) -> UniversityAgent:
+        """Register a new domain expert agent"""
+        try:
+            agent_id = str(uuid.uuid4())
+            
+            # Create base agent
+            agent = UniversityAgent(
+                id=agent_id,
+                name=expert_data["name"],
+                role="domain_expert",
+                status="active",
+                configuration={
+                    "domain": expert_data["domain"],
+                    "capabilities": expert_data.get("available_capabilities", [])
+                }
+            )
+            self.db.add(agent)
+            
+            # Create expert profile
+            profile = DomainExpertProfile(
+                id=str(uuid.uuid4()),
+                agent_id=agent_id,
+                domain_name=expert_data["domain"],
+                expertise_level=expert_data.get("expertise_level", "expert"),
+                specializations=expert_data.get("specializations", []),
+                teaching_style=expert_data.get("teaching_style", "adaptive"),
+                credentials=expert_data.get("credentials", {}),
+                success_rate=0.0,
+                students_helped=0,
+                rating=5.0
+            )
+            self.db.add(profile)
+            
+            self.db.commit()
+            return agent
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"Error registering expert agent: {str(e)}")
+            raise
+
+    def get_expert_agent(self, agent_id: str) -> Optional[UniversityAgent]:
+        """Retrieve an expert agent by ID"""
+        return self.db.query(UniversityAgent).filter(UniversityAgent.id == agent_id).first()

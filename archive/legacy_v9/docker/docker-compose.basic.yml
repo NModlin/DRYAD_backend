@@ -1,0 +1,29 @@
+
+
+services:
+  gremlins-backend:
+    build:
+      context: ../../../
+      dockerfile: Dockerfile.basic
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - BASIC_MODE=true
+      - DATABASE_URL=sqlite:///./gremlins.db
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:?JWT_SECRET_KEY is required}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../../../data:/app/data
+      - ../../../logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  data:
+  logs:

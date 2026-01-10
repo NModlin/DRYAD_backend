@@ -1,0 +1,103 @@
+# ============================================================================
+# GremlinsAI Self-Healing Worker - Production Dockerfile
+# Dedicated container for self-healing task execution
+# ============================================================================
+
+# Build arguments
+ARG PYTHON_VERSION=3.11
+
+# ============================================================================
+# Stage 1: Builder - Compile dependencies
+# ============================================================================
+FROM python:${PYTHON_VERSION}-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    libffi-dev \
+    libssl-dev \
+    cargo \
+    rustc \
+    libopenblas-dev \
+    liblapack-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Copy requirements
+COPY requirements.txt .
+
+# Create virtual environment and install dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir pytest pytest-asyncio
+
+# ============================================================================
+# Stage 2: Runtime - Worker image
+# ============================================================================
+FROM python:${PYTHON_VERSION}-slim as runtime
+
+# Metadata
+LABEL maintainer="GremlinsAI Team" \
+      version="1.0.0" \
+      description="GremlinsAI Self-Healing Worker" \
+      org.opencontainers.image.source="https://github.com/NModlin/GremlinsAI_backend"
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    libgomp1 \
+    libopenblas0 \
+    liblapack3 \
+    git \
+    bash \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN addgroup -g 1000 worker && \
+    adduser -D -u 1000 -G worker worker
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Set environment variables
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    ENVIRONMENT=production \
+    ENABLE_SELF_HEALING=true \
+    WORKER_MODE=true
+
+# Copy application code
+COPY --chown=worker:worker app/ ./app/
+COPY --chown=worker:worker alembic/ ./alembic/
+COPY --chown=worker:worker alembic.ini .
+
+# Create necessary directories
+RUN mkdir -p /app/data /app/logs /app/models /app/backups && \
+    chown -R worker:worker /app
+
+# Switch to non-root user
+USER worker
+
+# Health check - verify worker is running
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+    CMD pgrep -f "self_healing_worker" || exit 1
+
+# Start worker
+CMD ["python", "-m", "app.workers.self_healing_worker"]
+
