@@ -1,0 +1,62 @@
+{
+  "name": "dryads-console",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The Dryads Console - Quantum-inspired knowledge tree navigator for DRYAD.AI",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.56.1",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/react-virtual": "^3.0.0",
+    "axios": "^1.7.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "framer-motion": "^10.16.4",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.294.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.3",
+    "react-hot-toast": "^2.4.1",
+    "react-intersection-observer": "^9.5.2",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.26.0",
+    "socket.io-client": "^4.7.5",
+    "tailwind-merge": "^2.0.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.0",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.6",
+    "typescript": "^5.0.2",
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "dryad",
+    "ai",
+    "knowledge-tree",
+    "quantum",
+    "console",
+    "react",
+    "typescript"
+  ],
+  "author": "DRYAD.AI Team",
+  "license": "MIT"
+}

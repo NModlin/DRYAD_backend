@@ -116,7 +116,7 @@ PACKAGES=(
     "python-virtualenv"
     "docker"
     "docker-compose"
-    "redis"
+    # "redis" # Removed, running in Docker
     "wget"
     "curl"
 )
@@ -174,29 +174,50 @@ fi
 echo ""
 echo -e "${GREEN}Step 4: Configuring Redis...${NC}"
 
-if service_exists "redis"; then
-    # Enable Redis
-    if ! systemctl is-enabled --quiet redis; then
-        sudo systemctl enable redis
-        success "Redis enabled"
-    else
-        info "Redis already enabled"
-    fi
+echo -e "${GREEN}Step 4: Configuring Redis (Docker)...${NC}"
 
-    # Start Redis
-    if ! is_service_running "redis"; then
-        if sudo systemctl start redis; then
-            success "Redis started"
-        else
-            handle_error "Failed to start Redis"
-            exit 1
-        fi
+# Stop system Redis/Valkey if running to avoid port conflicts
+if service_exists "redis" || service_exists "valkey"; then
+    info "Stopping system redis/valkey to avoid conflicts..."
+    sudo systemctl stop redis 2>/dev/null || true
+    sudo systemctl stop valkey 2>/dev/null || true
+    sudo systemctl disable redis 2>/dev/null || true
+    sudo systemctl disable valkey 2>/dev/null || true
+fi
+
+# Check if Redis container exists
+if docker ps -a --format '{{.Names}}' | grep -q "dryad-redis"; then
+    warn "Redis container already exists"
+    if docker ps --format '{{.Names}}' | grep -q "dryad-redis"; then
+        success "Redis container running"
     else
-        success "Redis already running"
+        info "Starting Redis container..."
+        docker start dryad-redis
     fi
 else
-    handle_error "Redis service not found"
-    exit 1
+    info "Creating Redis docker-compose configuration..."
+    cat > docker-compose.redis.yml <<'EOF'
+version: '3.8'
+services:
+  redis:
+    container_name: dryad-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+volumes:
+  redis_data:
+EOF
+
+    info "Starting Redis container..."
+    if docker-compose -f docker-compose.redis.yml up -d; then
+        success "Redis container started"
+    else
+        handle_error "Failed to start Redis container"
+        exit 1
+    fi
 fi
 
 echo ""
@@ -310,13 +331,9 @@ else
     fi
 fi
 
-# Checkout refactor branch
-info "Switching to refactor branch..."
-if git checkout refactor; then
-    success "On refactor branch"
-else
-    warn "Failed to checkout refactor branch (using current branch)"
-fi
+# Branch check
+info "Current branch: $(git branch --show-current)"
+
 
 echo ""
 echo -e "${GREEN}Step 8: Setting up Python virtual environment...${NC}"
@@ -363,15 +380,8 @@ else
     exit 1
 fi
 
-# Install optional dependencies if needed
-if [ -f "archive/legacy_v9/requirements.txt" ]; then
-    info "Installing additional legacy dependencies..."
-    if pip install -r archive/legacy_v9/requirements.txt; then
-        success "Legacy dependencies installed"
-    else
-        warn "Some legacy dependencies failed to install (may not be critical)"
-    fi
-fi
+# Legacy dependencies check removed
+
 
 echo ""
 echo -e "${GREEN}Step 11: Setting up Weaviate with Docker...${NC}"
@@ -623,7 +633,7 @@ echo "   ./verify_installation.sh"
 echo ""
 
 echo -e "${BLUE}Service Status:${NC}"
-echo "  - Redis: $(is_service_running redis && echo -e "${GREEN}Running${NC}" || echo -e "${RED}Not running${NC}")"
+echo "  - Redis: $(docker ps | grep -q dryad-redis && echo -e "${GREEN}Running${NC}" || echo -e "${RED}Not running${NC}")"
 echo "  - Ollama: $(is_service_running ollama && echo -e "${GREEN}Running${NC}" || echo -e "${RED}Not running${NC}")"
 echo "  - Docker: $(is_service_running docker && echo -e "${GREEN}Running${NC}" || echo -e "${RED}Not running${NC}")"
 echo "  - Weaviate: $(docker ps | grep -q weaviate && echo -e "${GREEN}Running${NC}" || echo -e "${RED}Not running${NC}")"

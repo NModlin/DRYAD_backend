@@ -53,7 +53,7 @@ check_http() {
 }
 
 echo -e "${YELLOW}System Services:${NC}"
-check_service "Redis" "redis-cli ping | grep -q PONG"
+check_service "Redis (Docker)" "docker exec dryad-redis redis-cli ping | grep -q PONG"
 check_service "Docker" "docker ps"
 check_service "Ollama" "systemctl is-active ollama"
 echo ""

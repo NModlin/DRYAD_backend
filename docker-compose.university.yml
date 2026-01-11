@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # University Backend
+  university-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: university-backend
+    command: uvicorn dryad.university.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./src:/app/src
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://university:university_pass@university-db:5432/university_db
+      - REDIS_URL=redis://university-redis:6379/0
+      - PYTHONPATH=/app/src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - university-db
+      - university-redis
+    networks:
+      - university-net
+    restart: unless-stopped
+
+  # University Frontend
+  university-frontend:
+    build:
+      context: ./src/clients/dryad-university-ui
+      dockerfile: Dockerfile
+    container_name: university-frontend
+    ports:
+      - "3333:80"
+    depends_on:
+      - university-backend
+    networks:
+      - university-net
+    restart: unless-stopped
+
+  # Postgres Database
+  university-db:
+    image: postgres:15-alpine
+    container_name: university-db
+    environment:
+      - POSTGRES_USER=university
+      - POSTGRES_PASSWORD=university_pass
+      - POSTGRES_DB=university_db
+    volumes:
+      - university_postgres_data:/var/lib/postgresql/data
+    networks:
+      - university-net
+    ports:
+       - "5432:5432" # Exposed for local debugging if needed
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U university"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  university-redis:
+    image: redis:7-alpine
+    container_name: university-redis
+    networks:
+      - university-net
+    ports:
+      - "6379:6379"
+    healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 5s
+        timeout: 3s
+        retries: 5
+
+networks:
+  university-net:
+    driver: bridge
+
+volumes:
+  university_postgres_data:
