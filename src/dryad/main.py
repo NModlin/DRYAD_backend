@@ -50,9 +50,20 @@ app = FastAPI(
 )
 
 # CORS (Configured for development, tighten for production)
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,7 +78,12 @@ app.include_router(agents.router, prefix="/api/v1/agents", tags=["agents"])
 # Include Legacy Routers
 app.include_router(dryad.router, prefix="/api/v1/dryad", tags=["dryad"])
 app.include_router(orchestrator.router, prefix="/api/v1/orchestrator", tags=["orchestrator"])
+app.include_router(orchestrator.router, prefix="/api/v1/orchestrator", tags=["orchestrator"])
 # app.include_router(multimodal_api.router, prefix="/api/v1/multimodal", tags=["multimodal"])
+
+# Include University Router
+from dryad.university.api.v1.endpoints import enhanced_university
+app.include_router(enhanced_university.router, prefix="/api/v1", tags=["university"])
 
 
 def start():
